@@ -43,7 +43,7 @@ export default async function Home() {
       {/* ── NAVBAR SPACER (sticky nav var) ── */}
 
       {/* ── HERO ── */}
-      <section style={{
+      <section className="hero-section" style={{
         minHeight: '92vh',
         position: 'relative',
         display: 'grid',
@@ -67,7 +67,7 @@ export default async function Home() {
         }} />
 
         {/* Sol — yazı */}
-        <div style={{
+        <div className="hero-text" style={{
           position: 'relative', zIndex: 2,
           padding: '7rem 3rem 5rem 5rem',
           display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1.5rem',
@@ -117,7 +117,7 @@ export default async function Home() {
         </div>
 
         {/* Sağ — stacked cards */}
-        <div style={{
+        <div className="hero-cards" style={{
           position: 'relative', zIndex: 2,
           display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem',
         }}>
@@ -163,8 +163,8 @@ export default async function Home() {
       </section>
 
       {/* ── KATEGORİLER ── */}
-      <section style={{ background: '#1e1410', padding: '3rem 2.5rem' }}>
-        <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', justifyContent: 'center', gap: '2.5rem', flexWrap: 'wrap' }}>
+      <section className="section-pad" style={{ background: '#1e1410', padding: '3rem 2.5rem' }}>
+        <div className="cat-row" style={{ maxWidth: 900, margin: '0 auto', display: 'flex', justifyContent: 'center', gap: '2.5rem', flexWrap: 'wrap' }}>
           {[
             { href: '/yasam', label: 'yaşam', color: '#8b2635' },
             { href: '/seyahat', label: 'seyahat', color: '#1e3a5f' },
@@ -191,7 +191,7 @@ export default async function Home() {
       </section>
 
       {/* ── SON YAZILAR ── */}
-      <section style={{ padding: '5rem 2.5rem', maxWidth: 1100, margin: '0 auto' }}>
+      <section className="section-pad" style={{ padding: '5rem 2.5rem', maxWidth: 1100, margin: '0 auto' }}>
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
           marginBottom: '2.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem',
@@ -199,7 +199,7 @@ export default async function Home() {
           <h2 style={{ fontSize: '1.6rem', color: '#2a1f18' }}>Son Yazılar</h2>
           <Link href="/yasam" style={{ fontSize: '0.75rem', color: '#8b2635', letterSpacing: '0.08em' }}>tümünü gör →</Link>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+        <div className="post-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
           {rest.map(post => (
             <Link key={post.id} href={`/yazi/${post.slug}`} className="card-hover" style={{
               background: 'white', borderRadius: 16, overflow: 'hidden',
@@ -240,7 +240,7 @@ export default async function Home() {
 
       {/* ── FOOTER ── */}
       <footer style={{ background: '#1e1410', borderTop: '1px solid rgba(245,232,208,0.08)', padding: '2.5rem' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+        <div className="site-footer" style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
           <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', color: '#c8956a', fontSize: '1.1rem' }}>The Cultiva</span>
           <p style={{ fontSize: '0.72rem', color: 'rgba(245,232,208,0.4)' }}>© 2026 The Cultiva — yaşam, sanat & seyahat</p>
           <div style={{ display: 'flex', gap: '1.5rem' }}>

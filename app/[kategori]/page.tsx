@@ -23,7 +23,7 @@ export default async function KategoriPage({ params }: { params: Promise<{ kateg
   return (
     <div style={{ minHeight: '100vh' }}>
       {/* Header */}
-      <div style={{
+      <div className="section-pad" style={{
         padding: '5rem 2.5rem 3rem',
         background: `linear-gradient(135deg, ${colors[kategori]}44, var(--cream))`,
         borderBottom: '1px solid var(--border)',
@@ -42,11 +42,11 @@ export default async function KategoriPage({ params }: { params: Promise<{ kateg
       </div>
 
       {/* Posts */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '4rem 2.5rem' }}>
+      <div className="section-pad" style={{ maxWidth: 1100, margin: '0 auto', padding: '4rem 2.5rem' }}>
         {posts?.length === 0 ? (
           <p style={{ color: 'var(--muted)', textAlign: 'center', padding: '4rem' }}>Henüz yazı yok.</p>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+          <div className="post-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
             {posts?.map(post => (
               <Link key={post.id} href={`/yazi/${post.slug}`} style={{
                 background: 'white', borderRadius: 14, overflow: 'hidden',

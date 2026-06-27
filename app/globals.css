@@ -148,3 +148,59 @@ button { cursor: pointer; font-family: inherit; }
   background-clip: text;
   animation: shimmer 3s linear infinite;
 }
+
+/* ── MOBİL UYUMLULUK ── */
+@media (max-width: 768px) {
+  /* Hero: iki sütundan tek sütuna */
+  .hero-section {
+    grid-template-columns: 1fr !important;
+    min-height: auto !important;
+    padding-bottom: 3rem !important;
+  }
+  .hero-text {
+    padding: 6rem 1.5rem 2rem !important;
+  }
+  /* Hero kart yığını mobilde gizli (dar alanda taşıyordu) */
+  .hero-cards {
+    display: none !important;
+  }
+
+  /* Tüm yazı grid'leri tek sütun */
+  .post-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Kategori daireleri */
+  .cat-row {
+    gap: 1.25rem !important;
+  }
+  .cat-row .cat-circle {
+    width: 60px !important;
+    height: 60px !important;
+  }
+
+  /* Bölüm padding'lerini küçült */
+  .section-pad {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+  }
+
+  /* Footer dikey */
+  .site-footer {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Navbar: masaüstü menüleri gizle, hamburger göster */
+  .site-nav {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+  }
+  .nav-desktop {
+    display: none !important;
+  }
+  .nav-toggle {
+    display: flex !important;
+  }
+}

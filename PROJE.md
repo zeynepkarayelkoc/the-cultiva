@@ -3,7 +3,7 @@
 **Site:** yaşam, sanat ve seyahat üzerine kişisel blog  
 **Stack:** Next.js (App Router) + Supabase + Vercel  
 **GitHub:** https://github.com/zeynepkarayelkoc/the-cultiva  
-**Canlı site:** https://the-cultiva-web.vercel.app
+**Canlı site:** https://www.thecultiva.com (Vercel: the-cultiva-web)
 
 ---
 
@@ -14,6 +14,7 @@
 | Ana Sayfa | `/` | Michelangelo welcome ekranı (bir kez gösterilir), hero bölümü, kategori linkleri, son yazılar |
 | Kategori | `/yasam` `/seyahat` `/sanat` | Kategoriye göre filtrelenmiş yazı listesi |
 | Yazı | `/yazi/[slug]` | Yazı detay sayfası — başlık, yazar, tarih, içerik |
+| Yazar | `/yazar/[ad]` | Bir yazarın tüm yazıları (yazar adından üretilen slug ile eşleşir) |
 | Giriş | `/giris` | Okuyucu girişi (Supabase Auth) |
 | Üye Paneli | `/panel` | Giriş yapmış kullanıcının profil sayfası (korumalı) |
 | Admin Giriş | `/admin/giris` | Admin kullanıcısı için ayrı giriş sayfası |
@@ -33,7 +34,8 @@ the-cultiva/
 │   ├── globals.css               # CSS variables, animasyonlar
 │   ├── not-found.tsx             # 404 sayfası
 │   ├── [kategori]/page.tsx       # Kategori sayfası
-│   ├── yazi/[slug]/page.tsx      # Yazı detay
+│   ├── yazi/[slug]/page.tsx      # Yazı detay (yazar adı /yazar sayfasına linkli)
+│   ├── yazar/[ad]/page.tsx       # Yazar sayfası — yazarın tüm yazıları
 │   ├── giris/page.tsx            # Okuyucu girişi
 │   ├── panel/page.tsx            # Üye paneli
 │   └── admin/
@@ -45,10 +47,12 @@ the-cultiva/
 ├── components/
 │   ├── WelcomeScreen.tsx         # Michelangelo açılış ekranı
 │   └── Navbar.tsx                # Navbar (ana sayfada gizli)
-├── lib/supabase/
-│   ├── client.ts                 # Browser-side Supabase client
-│   └── server.ts                 # Server-side Supabase client
-├── proxy.ts                      # Route koruması middleware
+├── lib/
+│   ├── supabase/
+│   │   ├── client.ts             # Browser-side Supabase client
+│   │   └── server.ts             # Server-side Supabase client
+│   └── authorSlug.ts             # Yazar adını URL-safe slug'a çevirir (TR karakter destekli)
+├── middleware.ts                 # Route koruması (panel + admin)
 ├── public/
 │   └── logo.png                  # The Cultiva logosu (yatay, 1664x457)
 ├── import_posts.mjs              # WordPress → Supabase import scripti
@@ -116,7 +120,8 @@ Eski site `loveinartsz.com` (Turhost/cPanel) üzerindeydi.
 
 ## Yapılacaklar
 
-- [ ] Alan adını Vercel'e bağla (.com domain)
+- [x] Alan adını Vercel'e bağla — thecultiva.com (apex → www yönlendirme), GoDaddy DNS: A @ 216.198.79.1, CNAME www → vercel-dns
+- [x] Yazar sayfaları (`/yazar/[ad]`)
 - [ ] Supabase Auth — admin rolü ayarla (`UPDATE profiles SET role = 'admin' WHERE email = 'zeynepkaraayel@gmail.com'`)
 - [ ] Supabase Storage `images` bucket politikaları (public read)
 - [ ] Responsive / mobil uyumluluk

@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { authorSlug } from '@/lib/authorSlug'
 
 const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', rehber: 'rehber', kitap: 'kitap' }
 
@@ -56,7 +57,7 @@ export default async function YaziPage({ params }: { params: Promise<{ slug: str
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '2.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border)' }}>
           {post.author_name && (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Link href={`/yazar/${authorSlug(post.author_name)}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{
                   width: 32, height: 32, borderRadius: '50%',
                   background: 'var(--terra)',
@@ -65,10 +66,10 @@ export default async function YaziPage({ params }: { params: Promise<{ slug: str
                 }}>
                   {post.author_name.charAt(0).toUpperCase()}
                 </div>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text)', fontWeight: 500 }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text)', fontWeight: 500, borderBottom: '1px solid rgba(139,38,53,0.3)' }}>
                   {post.author_name}
                 </span>
-              </div>
+              </Link>
               <span style={{ color: 'var(--border)' }}>·</span>
             </>
           )}
