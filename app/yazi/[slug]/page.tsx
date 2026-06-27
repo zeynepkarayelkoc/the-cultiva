@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { authorSlug } from '@/lib/authorSlug'
+import { cleanContent } from '@/lib/cleanContent'
 
 const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', rehber: 'rehber', kitap: 'kitap' }
 
@@ -83,7 +84,7 @@ export default async function YaziPage({ params }: { params: Promise<{ slug: str
         {post.content ? (
           <div
             className="post-content"
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            dangerouslySetInnerHTML={{ __html: cleanContent(post.content) }}
           />
         ) : (
           <p style={{ fontSize: '1.05rem', lineHeight: 1.85, color: 'var(--text)', fontStyle: 'italic' }}>
