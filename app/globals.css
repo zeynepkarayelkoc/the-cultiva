@@ -204,3 +204,115 @@ button { cursor: pointer; font-family: inherit; }
     display: flex !important;
   }
 }
+
+/* ── YAZI İÇERİĞİ TİPOGRAFİSİ (WordPress HTML) ── */
+.post-content {
+  font-size: 1.08rem;
+  line-height: 1.8;
+  color: var(--text);
+}
+
+/* Paragraflar — aşırı boşluk yerine düzenli ritim */
+.post-content p {
+  margin: 0 0 1.4rem;
+}
+.post-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* Boş paragrafları ve ardışık <br>'leri toparla (WordPress kalıntısı) */
+.post-content p:empty {
+  display: none;
+}
+.post-content br + br {
+  display: none;
+}
+
+/* Başlıklar */
+.post-content h2,
+.post-content h3,
+.post-content h4 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--text);
+  margin: 2.4rem 0 1rem;
+}
+.post-content h2 { font-size: 1.6rem; }
+.post-content h3 { font-size: 1.35rem; }
+.post-content h4 { font-size: 1.15rem; }
+
+/* Kalın metin (soru-cevap başlıkları) — vurguyu güçlendir */
+.post-content strong,
+.post-content b {
+  font-weight: 600;
+  color: #1e1410;
+}
+
+/* Görseller — ortalanmış, tam genişlik, yumuşak köşe */
+.post-content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 2rem auto;
+  border-radius: 12px;
+}
+.post-content figure {
+  margin: 2rem 0;
+  text-align: center;
+}
+.post-content figure img {
+  margin: 0 auto;
+}
+.post-content figcaption {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 0.6rem;
+  font-style: italic;
+}
+
+/* Linkler */
+.post-content a {
+  color: var(--terra);
+  border-bottom: 1px solid rgba(139, 38, 53, 0.3);
+}
+.post-content a:hover {
+  border-bottom-color: var(--terra);
+}
+
+/* Listeler */
+.post-content ul,
+.post-content ol {
+  margin: 0 0 1.4rem;
+  padding-left: 1.4rem;
+}
+.post-content li {
+  margin-bottom: 0.5rem;
+}
+
+/* Alıntılar */
+.post-content blockquote {
+  margin: 2rem 0;
+  padding: 0.5rem 0 0.5rem 1.4rem;
+  border-left: 3px solid var(--terra);
+  font-style: italic;
+  color: var(--muted);
+}
+
+/* Yatay çizgi */
+.post-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2.5rem 0;
+}
+
+@media (max-width: 768px) {
+  .post-content {
+    font-size: 1rem;
+  }
+  .post-content img,
+  .post-content figure {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}

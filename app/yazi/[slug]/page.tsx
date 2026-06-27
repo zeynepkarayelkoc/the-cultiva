@@ -81,8 +81,9 @@ export default async function YaziPage({ params }: { params: Promise<{ slug: str
         </div>
 
         {post.content ? (
-          <div style={{ fontSize: '1.05rem', lineHeight: 1.85, color: 'var(--text)' }}
-            dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br>') }}
+          <div
+            className="post-content"
+            dangerouslySetInnerHTML={{ __html: post.content }}
           />
         ) : (
           <p style={{ fontSize: '1.05rem', lineHeight: 1.85, color: 'var(--text)', fontStyle: 'italic' }}>
