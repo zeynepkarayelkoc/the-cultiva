@@ -1,26 +1,150 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #f5f0e8;
+  --cream: #ede6d8;
+  --card: #ffffff;
+  --terra: #8b2635;
+  --terra2: #6a1020;
+  --navy: #1e3a5f;
+  --sage: #2d5a3d;
+  --text: #2a1f18;
+  --muted: rgba(42,31,24,0.55);
+  --border: rgba(42,31,24,0.1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+html { scroll-behavior: smooth; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Open Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 400; }
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: inherit; }
+
+/* ── GENEL ANİMASYONLAR ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(var(--r, 0deg)); }
+  50%       { transform: translateY(-12px) rotate(var(--r, 0deg)); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+@keyframes paintDrift {
+  0%   { transform: scale(1.06) translate(0px, 0px) rotateY(0deg); }
+  33%  { transform: scale(1.09) translate(-10px, 5px) rotateY(1.5deg); }
+  66%  { transform: scale(1.07) translate(6px, -8px) rotateY(-1deg); }
+  100% { transform: scale(1.06) translate(0px, 0px) rotateY(0deg); }
+}
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.08); }
+}
+@keyframes sparkle {
+  0%   { opacity: 0; transform: scale(0) rotate(0deg); }
+  50%  { opacity: 1; transform: scale(1) rotate(180deg); }
+  100% { opacity: 0; transform: scale(0) rotate(360deg); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── KART HOVER ── */
+.card-hover {
+  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.35s ease;
+}
+.card-hover:hover {
+  transform: translateY(-8px) scale(1.025);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.15) !important;
+}
+
+/* ── KATEGORİ DAİRE HOVER ── */
+.cat-circle {
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease;
+}
+.cat-circle:hover {
+  transform: scale(1.15) translateY(-4px);
+}
+
+/* ── NAV LİNK HOVER ── */
+.nav-link {
+  position: relative;
+  transition: color 0.2s;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0;
+  width: 0; height: 1.5px;
+  background: var(--terra);
+  transition: width 0.25s ease;
+}
+.nav-link:hover::after { width: 100%; }
+
+/* ── BUTON HOVER ── */
+.btn-primary {
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.btn-primary:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 28px rgba(139,38,53,0.45) !important;
+}
+
+/* ── FADE-UP ANİMASYON YARDIMCI ── */
+.anim-fade-up {
+  opacity: 0;
+  animation: fadeUp 0.7s ease forwards;
+}
+.anim-delay-1 { animation-delay: 0.1s; }
+.anim-delay-2 { animation-delay: 0.2s; }
+.anim-delay-3 { animation-delay: 0.35s; }
+.anim-delay-4 { animation-delay: 0.5s; }
+.anim-delay-5 { animation-delay: 0.65s; }
+
+/* ── 3D HERO PERSPEKTİF ── */
+.hero-3d {
+  perspective: 1200px;
+}
+.hero-img-3d {
+  transition: transform 0.8s cubic-bezier(0.23,1,0.32,1);
+  transform-style: preserve-3d;
+}
+.hero-3d:hover .hero-img-3d {
+  transform: rotateY(3deg) rotateX(1deg) scale(1.03);
+}
+
+/* ── STACKEd KART FLOAT ── */
+.stack-card-0 { --r: -7deg; animation: float 6s ease-in-out infinite; }
+.stack-card-1 { --r:  1deg; animation: float 7s ease-in-out infinite 0.8s; }
+.stack-card-2 { --r:  9deg; animation: float 5.5s ease-in-out infinite 1.4s; }
+
+/* ── PARLAMAYI GÖRSEL ── */
+.shimmer-text {
+  background: linear-gradient(90deg, #f5e8d0 0%, #ffd580 40%, #f5e8d0 60%, #ffd580 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
 }
