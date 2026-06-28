@@ -31,6 +31,7 @@ export default function Navbar() {
     { href: '/yasam', label: 'yaşam' },
     { href: '/seyahat', label: 'seyahat' },
     { href: '/sanat', label: 'sanat' },
+    { href: '/sinema', label: 'sinema' },
     { href: '/rehber', label: 'rehber' },
     { href: '/kitap', label: 'kitap' },
   ]

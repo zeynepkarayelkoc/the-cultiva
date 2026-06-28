@@ -5,8 +5,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { authorSlug } from '@/lib/authorSlug'
 
-const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', rehber: 'rehber', kitap: 'kitap' }
-const colors: Record<string, string> = { yasam: '#8b2635', seyahat: '#1e3a5f', sanat: '#5c3460', rehber: '#2d5a3d', kitap: '#7a4f1a' }
+const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', sinema: 'sinema', rehber: 'rehber', kitap: 'kitap' }
+const colors: Record<string, string> = { yasam: '#8b2635', seyahat: '#1e3a5f', sanat: '#5c3460', sinema: '#7a3b5c', rehber: '#2d5a3d', kitap: '#7a4f1a' }
 
 export default async function YazarPage({ params }: { params: Promise<{ ad: string }> }) {
   const { ad } = await params

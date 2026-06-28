@@ -6,12 +6,12 @@ import WelcomeScreen from '@/components/WelcomeScreen'
 
 const categoryColors: Record<string, string> = {
   yasam: '#8b2635', seyahat: '#1e3a5f', sanat: '#5c3460',
-  rehber: '#2d5a3d', kitap: '#7a4f1a',
+  sinema: '#7a3b5c', rehber: '#2d5a3d', kitap: '#7a4f1a',
 }
 
 const categoryLabels: Record<string, string> = {
   yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat',
-  rehber: 'rehber', kitap: 'kitap',
+  sinema: 'sinema', rehber: 'rehber', kitap: 'kitap',
 }
 
 // Kategori başına güzel unsplash fotoğrafları
@@ -19,6 +19,7 @@ const categoryImages: Record<string, string> = {
   yasam: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80',
   seyahat: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&q=80',
   sanat: 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=1200&q=80',
+  sinema: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1200&q=80',
   rehber: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&q=80',
   kitap: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1200&q=80',
 }
@@ -169,6 +170,7 @@ export default async function Home() {
             { href: '/yasam', label: 'yaşam', color: '#8b2635' },
             { href: '/seyahat', label: 'seyahat', color: '#1e3a5f' },
             { href: '/sanat', label: 'sanat', color: '#5c3460' },
+            { href: '/sinema', label: 'sinema', color: '#7a3b5c' },
             { href: '/rehber', label: 'rehber', color: '#2d5a3d' },
             { href: '/kitap', label: 'kitap', color: '#7a4f1a' },
           ].map(({ href, label, color }) => (

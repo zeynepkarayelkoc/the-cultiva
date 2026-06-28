@@ -4,9 +4,9 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-const valid = ['yasam', 'seyahat', 'sanat', 'rehber', 'kitap']
-const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', rehber: 'rehber', kitap: 'kitap' }
-const colors: Record<string, string> = { yasam: '#d4c0a0', seyahat: '#a0b8c0', sanat: '#c0b0c8', rehber: '#a0c0a8', kitap: '#c8c0a0' }
+const valid = ['yasam', 'seyahat', 'sanat', 'sinema', 'rehber', 'kitap']
+const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', sinema: 'sinema', rehber: 'rehber', kitap: 'kitap' }
+const colors: Record<string, string> = { yasam: '#d4c0a0', seyahat: '#a0b8c0', sanat: '#c0b0c8', sinema: '#b89aa8', rehber: '#a0c0a8', kitap: '#c8c0a0' }
 
 export default async function KategoriPage({ params }: { params: Promise<{ kategori: string }> }) {
   const { kategori } = await params

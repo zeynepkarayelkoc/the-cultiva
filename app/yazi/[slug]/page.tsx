@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation'
 import { authorSlug } from '@/lib/authorSlug'
 import { cleanContent } from '@/lib/cleanContent'
 
-const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', rehber: 'rehber', kitap: 'kitap' }
+const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', sinema: 'sinema', rehber: 'rehber', kitap: 'kitap' }
 
 export default async function YaziPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
