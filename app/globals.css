@@ -169,13 +169,13 @@ button { cursor: pointer; font-family: inherit; }
   );
 }
 
-/* Sağ panel — cream/beyaz yarı saydam */
+/* Sağ panel — koyu tinted overlay */
 .hero-side-panel {
   position: absolute;
   top: 0; right: 0; bottom: 0;
   width: 44%;
-  background: rgba(245,240,232,0.93);
-  backdrop-filter: blur(12px);
+  background: linear-gradient(to left, rgba(6,3,2,0.55) 0%, rgba(10,6,4,0.2) 100%);
+  backdrop-filter: blur(3px);
 }
 
 /* SOL */
@@ -271,60 +271,112 @@ button { cursor: pointer; font-family: inherit; }
   background: #c8956a;
 }
 
-/* SAĞ */
+/* SAĞ: magazine kartları */
 .hero-slider-right {
   position: relative;
   z-index: 3;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 1rem;
-  padding: 2rem 2.5rem 2rem 1.8rem;
+  gap: 10px;
+  padding: 2.5rem 2rem 2.5rem 1.5rem;
 }
 
-.hero-mini-card {
-  display: flex;
-  gap: 0;
-  background: white;
-  border-radius: 14px;
+/* Magazine tam-görsel kart */
+.hero-mag-card {
+  position: relative;
+  height: 108px;
+  border-radius: 16px;
   overflow: hidden;
-  height: 88px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
-  border: 1px solid rgba(42,31,24,0.07);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.hero-mini-card:hover {
-  transform: translateX(-4px);
-  box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+  display: block;
+  opacity: 0;
+  animation: slideInRight 0.55s cubic-bezier(0.22,1,0.36,1) forwards;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.35);
 }
 
-.hero-mini-card-img {
-  width: 88px;
-  flex-shrink: 0;
+.hero-mag-card-bg {
+  position: absolute;
+  inset: 0;
   background-size: cover;
   background-position: center;
+  transition: transform 0.55s ease;
+}
+.hero-mag-card:hover .hero-mag-card-bg {
+  transform: scale(1.07);
 }
 
-.hero-mini-card-body {
-  padding: 12px 14px;
+.hero-mag-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(8,4,2,0.88) 0%,
+    rgba(8,4,2,0.4) 55%,
+    rgba(8,4,2,0.05) 100%
+  );
+  transition: background 0.35s;
+}
+.hero-mag-card:hover .hero-mag-card-overlay {
+  background: linear-gradient(
+    to top,
+    rgba(8,4,2,0.94) 0%,
+    rgba(8,4,2,0.55) 55%,
+    rgba(8,4,2,0.15) 100%
+  );
+}
+
+.hero-mag-card-content {
+  position: absolute;
+  inset: 0;
+  padding: 10px 14px 12px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 5px;
+  justify-content: space-between;
 }
 
-.hero-mini-card-cat {
-  font-size: 0.52rem;
-  letter-spacing: 0.2em;
+.hero-mag-card-cat {
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
+  color: white;
   font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 50px;
+  width: fit-content;
 }
 
-.hero-mini-card-title {
+.hero-mag-card-title {
   font-family: 'Playfair Display', serif;
-  font-size: 0.83rem;
+  font-size: 0.8rem;
   line-height: 1.3;
-  color: #2a1f18;
+  color: rgba(245,232,208,0.95);
+  padding-right: 1.5rem;
+}
+
+/* Hover'da sağ alt köşede çıkan ok */
+.hero-mag-card-arrow {
+  position: absolute;
+  bottom: 10px;
+  right: 14px;
+  color: rgba(245,232,208,0.55);
+  font-size: 0.9rem;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+.hero-mag-card:hover .hero-mag-card-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Slider bg fade-in */
+.anim-fade-in {
+  animation: fadeIn 0.6s ease forwards;
 }
 
 /* Mobil: sağ panel gizle, hero tek sütun */
