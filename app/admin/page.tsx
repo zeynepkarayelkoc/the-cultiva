@@ -29,6 +29,9 @@ export default async function AdminPage() {
       }}>
         <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', color: '#b5734a' }}>The Cultiva · Admin</span>
         <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+          <Link href="/admin/anasayfa" style={{ fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(245,232,208,0.7)', background: 'rgba(245,232,208,0.08)', padding: '0.45rem 1.2rem', borderRadius: 50, border: '1px solid rgba(245,232,208,0.15)' }}>
+            ★ Ana Sayfa
+          </Link>
           <Link href="/admin/yazi/yeni" style={{ fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#f5e8d0', background: '#b5734a', padding: '0.45rem 1.2rem', borderRadius: 50 }}>
             + Yeni Yazı
           </Link>

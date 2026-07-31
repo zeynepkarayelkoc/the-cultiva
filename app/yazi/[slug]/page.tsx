@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { authorSlug } from '@/lib/authorSlug'
 import { cleanContent } from '@/lib/cleanContent'
+import AdBanner from '@/components/AdBanner'
 
 const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', sinema: 'sinema', rehber: 'rehber', kitap: 'kitap' }
 
@@ -92,8 +93,15 @@ export default async function YaziPage({ params }: { params: Promise<{ slug: str
           </p>
         )}
 
+        {/* Yazı sonu reklamı */}
+        <AdBanner
+          slot="0987654321"
+          format="fluid"
+          style={{ margin: '3rem 0', padding: '0.5rem 0' }}
+        />
+
         {/* Back link */}
-        <div style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid var(--border)' }}>
+        <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--border)' }}>
           <Link href={`/${post.category}`} style={{
             fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase',
             color: 'var(--terra)', borderBottom: '1px solid rgba(181,115,74,0.3)',

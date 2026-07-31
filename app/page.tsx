@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import WelcomeScreen from '@/components/WelcomeScreen'
 import HeroSlider from '@/components/HeroSlider'
+import AdBanner from '@/components/AdBanner'
 
 const categoryColors: Record<string, string> = {
   yasam: '#8b2635', seyahat: '#1e3a5f', sanat: '#5c3460',
@@ -36,7 +37,20 @@ export default async function Home() {
     .eq('published', true)
     .order('created_at', { ascending: false })
 
-  const slides    = posts?.slice(0, 5) ?? []
+  // Öne çıkan yazılar (slider için)
+  const { data: featuredPosts } = await supabase
+    .from('posts')
+    .select('*')
+    .eq('published', true)
+    .eq('featured', true)
+    .order('featured_order', { ascending: true })
+    .limit(5)
+
+  // Slider: önce featured, yoksa en yeni 5
+  const slides = (featuredPosts && featuredPosts.length > 0)
+    ? featuredPosts
+    : (posts?.slice(0, 5) ?? [])
+
   const gridPosts = posts?.slice(5, 14) ?? []
 
   const byCategory = (cat: string) =>
@@ -48,6 +62,13 @@ export default async function Home() {
 
       {/* ── TAM EKRAN HERO ── */}
       <HeroSlider slides={slides} />
+
+      {/* ── REKLAM: Hero Altı Banner ── */}
+      <AdBanner
+        slot="1234567890"
+        format="horizontal"
+        style={{ padding: '0.75rem 2rem', background: '#f5f0e8', borderBottom: '1px solid rgba(42,31,24,0.07)' }}
+      />
 
       {/* ── EDİTORYAL KATEGORİ BÖLÜMÜ ── */}
       <section className="editorial-section">
