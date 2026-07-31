@@ -32,16 +32,34 @@ export default function AnasayfaYonetimi() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [sliderInterval, setSliderInterval] = useState(8)
+  const [savingInterval, setSavingInterval] = useState(false)
 
   const supabase = createClient()
 
   const load = async () => {
-    const { data } = await supabase
-      .from('posts')
-      .select('id,title,slug,category,published,featured,featured_order,cover_url,created_at')
-      .order('created_at', { ascending: false })
-    setPosts(data ?? [])
+    const [{ data: postsData }, { data: settingData }] = await Promise.all([
+      supabase
+        .from('posts')
+        .select('id,title,slug,category,published,featured,featured_order,cover_url,created_at')
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'slider_interval')
+        .single(),
+    ])
+    setPosts(postsData ?? [])
+    if (settingData?.value) setSliderInterval(Math.round(Number(settingData.value) / 1000))
     setLoading(false)
+  }
+
+  const saveInterval = async () => {
+    setSavingInterval(true)
+    await supabase
+      .from('site_settings')
+      .upsert({ key: 'slider_interval', value: String(sliderInterval * 1000) })
+    setSavingInterval(false)
   }
 
   useEffect(() => { load() }, [])
@@ -119,6 +137,48 @@ export default function AnasayfaYonetimi() {
         <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.8rem', marginBottom: '2rem' }}>
           Ana Sayfa Yönetimi
         </h1>
+
+        {/* ── SLIDER HIZ AYARI ── */}
+        <div style={{ ...S.card, marginBottom: '1.5rem' }}>
+          <div style={S.cardHead}>
+            <div>
+              <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>Slider Geçiş Süresi</div>
+              <div style={{ fontSize: '0.7rem', color: 'rgba(245,232,208,0.4)', marginTop: 2 }}>
+                Her yazının kaç saniye görüneceği
+              </div>
+            </div>
+          </div>
+          <div style={{ padding: '1.2rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            {[4, 5, 6, 8, 10, 15, 20].map(s => (
+              <button
+                key={s}
+                onClick={() => setSliderInterval(s)}
+                style={{
+                  width: 44, height: 44, borderRadius: 10,
+                  border: sliderInterval === s ? '1.5px solid #b5734a' : '1px solid rgba(245,232,208,0.15)',
+                  background: sliderInterval === s ? 'rgba(181,115,74,0.2)' : 'transparent',
+                  color: sliderInterval === s ? '#b5734a' : 'rgba(245,232,208,0.5)',
+                  fontSize: '0.8rem', fontWeight: sliderInterval === s ? 700 : 400, cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {s}s
+              </button>
+            ))}
+            <button
+              onClick={saveInterval}
+              disabled={savingInterval}
+              style={{
+                marginLeft: 'auto', padding: '0.4rem 1.2rem', borderRadius: 50,
+                background: '#b5734a', color: '#f5e8d0',
+                border: 'none', fontSize: '0.72rem', letterSpacing: '0.1em',
+                cursor: 'pointer', opacity: savingInterval ? 0.6 : 1,
+              }}
+            >
+              {savingInterval ? 'kaydediliyor…' : 'kaydet'}
+            </button>
+          </div>
+        </div>
 
         {/* ── SLIDER ── */}
         <div style={S.card}>

@@ -14,13 +14,18 @@ export default function YaziDuzenle() {
   const [category, setCategory] = useState('yasam')
   const [readTime, setReadTime] = useState(5)
   const [published, setPublished] = useState(false)
+  const [coverUrl, setCoverUrl]       = useState('')
+  const [uploading, setUploading]     = useState(false)
+  const [authorName, setAuthorName]   = useState('')
+  const [authors, setAuthors]         = useState<{ id: string; full_name: string | null }[]>([])
   const [loading, setLoading]   = useState(true)
   const [saving, setSaving]     = useState(false)
   const [error, setError]       = useState('')
   const [success, setSuccess]   = useState('')
   const [preview, setPreview]   = useState(false)
   const [contentHtml, setContentHtml] = useState('')
-  const editorRef = useRef<HTMLDivElement>(null)
+  const editorRef    = useRef<HTMLDivElement>(null)
+  const coverFileRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -33,10 +38,15 @@ export default function YaziDuzenle() {
       setCategory(data.category ?? 'yasam')
       setReadTime(data.read_time ?? 5)
       setPublished(data.published ?? false)
+      setCoverUrl(data.cover_url ?? '')
+      setAuthorName(data.author_name ?? '')
       const html = data.content ?? ''
       setContentHtml(html)
       if (editorRef.current) editorRef.current.innerHTML = html
       setLoading(false)
+    })
+    supabase.from('profiles').select('id, full_name').then(({ data }) => {
+      if (data) setAuthors(data)
     })
   }, [id])
 
@@ -54,9 +64,10 @@ export default function YaziDuzenle() {
     e.preventDefault()
     setSaving(true); setError(''); setSuccess('')
     const { error: err } = await supabase.from('posts').update({
-      title, slug, excerpt,
+      title, slug, excerpt, cover_url: coverUrl || null,
       content: editorRef.current?.innerHTML ?? contentHtml,
       category, read_time: readTime, published,
+      author_name: authorName || null,
     }).eq('id', id)
     if (err) setError(err.message)
     else setSuccess('Kaydedildi ✓')
@@ -141,12 +152,25 @@ export default function YaziDuzenle() {
               paddingBottom: '1rem', marginBottom: '1.5rem',
             }}
           />
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 70px', gap: '0.75rem', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 70px', gap: '0.75rem', marginBottom: '1.5rem' }}>
             <div><label style={lbl}>slug</label><input value={slug} onChange={e => setSlug(e.target.value)} required style={inp} /></div>
             <div><label style={lbl}>kategori</label>
               <select value={category} onChange={e => setCategory(e.target.value)} style={inp}>
                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
+            </div>
+            <div>
+              <label style={lbl}>yazar</label>
+              {authors.length > 0 ? (
+                <select value={authorName} onChange={e => setAuthorName(e.target.value)} style={inp}>
+                  <option value="">— seç —</option>
+                  {authors.map(a => (
+                    <option key={a.id} value={a.full_name ?? ''}>{a.full_name ?? a.id}</option>
+                  ))}
+                </select>
+              ) : (
+                <input value={authorName} onChange={e => setAuthorName(e.target.value)} placeholder="Yazar adı" style={inp} />
+              )}
             </div>
             <div><label style={lbl}>dk okuma</label><input type="number" min={1} max={99} value={readTime} onChange={e => setReadTime(+e.target.value)} style={inp} /></div>
           </div>
@@ -154,6 +178,40 @@ export default function YaziDuzenle() {
             <label style={lbl}>özet</label>
             <textarea value={excerpt} onChange={e => setExcerpt(e.target.value)} rows={2} style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }} />
           </div>
+
+          {/* Kapak görseli */}
+          <div style={{ marginBottom: '2rem' }}>
+            <label style={lbl}>kapak görseli</label>
+            <div style={{ border: '1px solid rgba(245,232,208,0.12)', borderRadius: 12, overflow: 'hidden', background: 'rgba(245,232,208,0.03)' }}>
+              {coverUrl && (
+                <div style={{ position: 'relative' }}>
+                  <img src={coverUrl} alt="cover" style={{ width: '100%', height: 200, objectFit: 'cover', display: 'block' }} />
+                  <button type="button" onClick={() => setCoverUrl('')} style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.6)', border: 'none', color: '#f5e8d0', borderRadius: 6, padding: '0.3rem 0.6rem', fontSize: '0.72rem', cursor: 'pointer' }}>✕ kaldır</button>
+                </div>
+              )}
+              <div style={{ padding: '0.9rem 1rem', display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button type="button" onClick={() => coverFileRef.current?.click()} disabled={uploading} style={{ fontSize: '0.72rem', padding: '0.45rem 0.9rem', borderRadius: 8, border: 'none', background: '#b5734a', color: '#f5e8d0', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  {uploading ? '⏳ yükleniyor…' : '📁 bilgisayardan yükle'}
+                </button>
+                <input ref={coverFileRef} type="file" accept="image/*" onChange={async e => {
+                  const file = e.target.files?.[0]; if (!file) return
+                  setUploading(true)
+                  const ext = file.name.split('.').pop()
+                  const path = `covers/${Date.now()}.${ext}`
+                  const { error: upErr } = await supabase.storage.from('images').upload(path, file, { upsert: true })
+                  if (!upErr) {
+                    const { data } = supabase.storage.from('images').getPublicUrl(path)
+                    setCoverUrl(data.publicUrl)
+                  } else alert('Yükleme hatası: ' + upErr.message)
+                  setUploading(false)
+                  e.target.value = ''
+                }} style={{ display: 'none' }} />
+                <span style={{ fontSize: '0.65rem', color: 'rgba(245,232,208,0.3)' }}>veya</span>
+                <input value={coverUrl} onChange={e => setCoverUrl(e.target.value)} placeholder="https://… görsel URL yaz" style={{ ...inp, flex: 1, minWidth: 200 }} />
+              </div>
+            </div>
+          </div>
+
           <div>
             <label style={{ ...lbl, marginBottom: '0.5rem' }}>içerik</label>
             {!preview ? (

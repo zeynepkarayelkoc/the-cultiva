@@ -37,20 +37,28 @@ export default async function Home() {
     .eq('published', true)
     .order('created_at', { ascending: false })
 
-  // Öne çıkan yazılar (slider için)
-  const { data: featuredPosts } = await supabase
-    .from('posts')
-    .select('*')
-    .eq('published', true)
-    .eq('featured', true)
-    .order('featured_order', { ascending: true })
-    .limit(5)
+  // Öne çıkan yazılar + slider ayarı
+  const [{ data: featuredPosts }, { data: sliderSetting }] = await Promise.all([
+    supabase
+      .from('posts')
+      .select('*')
+      .eq('published', true)
+      .eq('featured', true)
+      .order('featured_order', { ascending: true })
+      .limit(5),
+    supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'slider_interval')
+      .single(),
+  ])
 
   // Slider: önce featured, yoksa en yeni 5
   const slides = (featuredPosts && featuredPosts.length > 0)
     ? featuredPosts
     : (posts?.slice(0, 5) ?? [])
 
+  const sliderInterval = Number(sliderSetting?.value ?? 8000)
   const gridPosts = posts?.slice(5, 14) ?? []
 
   const byCategory = (cat: string) =>
@@ -61,7 +69,7 @@ export default async function Home() {
       <WelcomeScreen />
 
       {/* ── TAM EKRAN HERO ── */}
-      <HeroSlider slides={slides} />
+      <HeroSlider slides={slides} interval={sliderInterval} />
 
       {/* ── REKLAM: Hero Altı Banner ── */}
       <AdBanner

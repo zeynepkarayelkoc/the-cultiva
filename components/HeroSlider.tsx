@@ -21,14 +21,14 @@ const categoryLabels: Record<string, string> = {
 
 const defaultBg = 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=1600&q=80'
 
-export default function HeroSlider({ slides }: { slides: Post[] }) {
+export default function HeroSlider({ slides, interval = 8000 }: { slides: Post[]; interval?: number }) {
   const [idx, setIdx] = useState(0)
 
   useEffect(() => {
     if (slides.length <= 1) return
-    const t = setInterval(() => setIdx(i => (i + 1) % slides.length), 5500)
+    const t = setInterval(() => setIdx(i => (i + 1) % slides.length), interval)
     return () => clearInterval(t)
-  }, [slides.length])
+  }, [slides.length, interval])
 
   const current = slides[idx]
   if (!current) return null
