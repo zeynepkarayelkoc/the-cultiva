@@ -65,7 +65,7 @@ export default function KategorilerClient({
 
   return (
     <AdminShell title="Kategoriler">
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,260px) minmax(0,1fr)', gap: 20, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20, alignItems: 'start' }}>
         {/* Ekleme formu */}
         <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 10, padding: 16 }}>
           <div style={{ fontSize: '0.95rem', fontWeight: 500, marginBottom: 14 }}>Yeni kategori</div>
@@ -92,8 +92,8 @@ export default function KategorilerClient({
         </div>
 
         {/* Liste */}
-        <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+        <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 10, overflowX: 'auto' }}>
+          <table style={{ width: '100%', minWidth: 420, borderCollapse: 'collapse', tableLayout: 'fixed' }}>
             <thead>
               <tr>
                 <th style={th}>Ad</th>

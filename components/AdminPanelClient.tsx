@@ -140,8 +140,8 @@ export default function AdminPanelClient({
         </span>
       </div>
 
-      <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+      <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 10, overflowX: 'auto' }}>
+        <table style={{ width: '100%', minWidth: 680, borderCollapse: 'collapse', tableLayout: 'fixed' }}>
           <thead>
             <tr>
               <th style={{ ...th, width: 38 }}>

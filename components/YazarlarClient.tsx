@@ -95,8 +95,8 @@ export default function YazarlarClient({
       {err && <div style={{ marginBottom: 12, fontSize: '0.82rem', color: T.danger }}>{err}</div>}
       {msg && <div style={{ marginBottom: 12, fontSize: '0.82rem', color: T.green }}>{msg}</div>}
 
-      <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+      <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 10, overflowX: 'auto' }}>
+        <table style={{ width: '100%', minWidth: 620, borderCollapse: 'collapse', tableLayout: 'fixed' }}>
           <thead>
             <tr>
               <th style={th}>Ad</th>
