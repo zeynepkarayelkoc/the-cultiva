@@ -17,7 +17,7 @@ export function dosyaKontrol(dosya: File): string | null {
     return 'Sadece görsel dosyası yükleyebilirsin.'
   }
   if (dosya.size > MAKS_BAYT) {
-    return `Görsel ${boyutMetni(dosya.size)}. En fazla ${MAKS_MB} MB yükleyebilirsin — küçültüp tekrar dene.`
+    return `Görsel ${boyutMetni(dosya.size)}. En fazla ${MAKS_MB} MB yükleyebilirsin, küçültüp tekrar dene.`
   }
   return null
 }
