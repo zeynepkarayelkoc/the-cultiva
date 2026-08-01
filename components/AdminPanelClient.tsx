@@ -1,207 +1,206 @@
 'use client'
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import AdminShell from './AdminShell'
+import { T, input, btn, btnPrimary, th, td, label } from '@/lib/adminTheme'
 
 type Post = {
   id: string; title: string; slug: string; category: string
   published: boolean; created_at: string; author_name: string | null
 }
-type User = { id: string; full_name: string | null; email: string; role: string; created_at: string }
+type Cat = { id: string; name: string; slug: string }
 
-const catLabels: Record<string, string> = {
-  yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat',
-  sinema: 'sinema', rehber: 'rehber', kitap: 'kitap',
-}
+const PER_PAGE = 25
 
-export default function AdminPanelClient({ posts, users }: { posts: Post[]; users: User[] }) {
-  const [search,   setSearch]   = useState('')
-  const [filterCat, setFilterCat] = useState('tümü')
-  const [filterStatus, setFilterStatus] = useState('tümü')
-  const [filterAuthor, setFilterAuthor] = useState('tümü')
+export default function AdminPanelClient({
+  posts, categories,
+}: { posts: Post[]; categories: Cat[] }) {
+  const router = useRouter()
+  const supabase = createClient()
 
-  // Benzersiz yazarlar
-  const authors = useMemo(() => {
-    const names = posts.map(p => p.author_name).filter(Boolean) as string[]
-    return [...new Set(names)].sort()
-  }, [posts])
+  const [search, setSearch] = useState('')
+  const [cat, setCat]       = useState('')
+  const [author, setAuthor] = useState('')
+  const [status, setStatus] = useState('')
+  const [page, setPage]     = useState(1)
+  const [sel, setSel]       = useState<Set<string>>(new Set())
+  const [bulk, setBulk]     = useState('')
+  const [busy, setBusy]     = useState(false)
 
-  // Benzersiz kategoriler (yazılarda olanlar)
-  const cats = useMemo(() => {
-    return [...new Set(posts.map(p => p.category))].sort()
-  }, [posts])
+  const catName = useMemo(() => {
+    const m: Record<string, string> = {}
+    categories.forEach(c => { m[c.slug] = c.name })
+    return m
+  }, [categories])
 
-  const filtered = useMemo(() => {
-    return posts.filter(p => {
-      if (search && !p.title.toLowerCase().includes(search.toLowerCase())) return false
-      if (filterCat !== 'tümü' && p.category !== filterCat) return false
-      if (filterStatus === 'yayında' && !p.published) return false
-      if (filterStatus === 'taslak'  && p.published)  return false
-      if (filterAuthor !== 'tümü' && p.author_name !== filterAuthor) return false
-      return true
-    })
-  }, [posts, search, filterCat, filterStatus, filterAuthor])
+  const authors = useMemo(
+    () => [...new Set(posts.map(p => p.author_name).filter(Boolean) as string[])]
+      .sort((a, b) => a.localeCompare(b, 'tr')),
+    [posts]
+  )
 
-  const published = posts.filter(p => p.published).length
-  const drafts    = posts.filter(p => !p.published).length
+  const filtered = useMemo(() => posts.filter(p => {
+    if (search && !p.title.toLocaleLowerCase('tr').includes(search.toLocaleLowerCase('tr'))) return false
+    if (cat && p.category !== cat) return false
+    if (author && p.author_name !== author) return false
+    if (status === 'published' && !p.published) return false
+    if (status === 'draft' && p.published) return false
+    return true
+  }), [posts, search, cat, author, status])
 
-  const selStyle = (active: boolean): React.CSSProperties => ({
-    fontSize: '0.68rem', padding: '0.35rem 0.85rem', borderRadius: 50, cursor: 'pointer',
-    border: active ? '1px solid #b5734a' : '1px solid rgba(245,232,208,0.15)',
-    background: active ? 'rgba(181,115,74,0.18)' : 'transparent',
-    color: active ? '#b5734a' : 'rgba(245,232,208,0.5)',
-    transition: 'all 0.15s', whiteSpace: 'nowrap' as const,
-  })
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
+  const current = Math.min(page, pageCount)
+  const rows = filtered.slice((current - 1) * PER_PAGE, current * PER_PAGE)
+
+  const reset = () => { setPage(1); setSel(new Set()) }
+
+  const toggle = (id: string) => {
+    const n = new Set(sel)
+    if (n.has(id)) n.delete(id); else n.add(id)
+    setSel(n)
+  }
+  const toggleAll = () =>
+    setSel(sel.size === rows.length ? new Set() : new Set(rows.map(r => r.id)))
+
+  const runBulk = async () => {
+    if (!bulk || sel.size === 0) return
+    const ids = [...sel]
+    if (bulk === 'delete' && !confirm(`${ids.length} yazı kalıcı olarak silinecek. Emin misin?`)) return
+    setBusy(true)
+    if (bulk === 'delete') await supabase.from('posts').delete().in('id', ids)
+    else await supabase.from('posts').update({ published: bulk === 'publish' }).in('id', ids)
+    setBusy(false); setSel(new Set()); setBulk('')
+    router.refresh()
+  }
+
+  const removeOne = async (p: Post) => {
+    if (!confirm(`"${p.title}" silinecek. Emin misin?`)) return
+    await supabase.from('posts').delete().eq('id', p.id)
+    router.refresh()
+  }
+
+  const ctl = { ...input, height: 34 }
 
   return (
-    <>
-      {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem', marginBottom: '3rem' }}>
-        {[
-          { label: 'Toplam Yazı', value: posts.length },
-          { label: 'Yayında', value: published },
-          { label: 'Taslak', value: drafts },
-          { label: 'Üye', value: users.length },
-        ].map(({ label, value }) => (
-          <div key={label} style={{ background: 'rgba(245,232,208,0.06)', borderRadius: 14, padding: '1.5rem', border: '1px solid rgba(245,232,208,0.1)' }}>
-            <div style={{ fontSize: '2rem', fontFamily: "'Playfair Display', serif", marginBottom: '0.3rem' }}>{value}</div>
-            <div style={{ fontSize: '0.7rem', color: 'rgba(245,232,208,0.5)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{label}</div>
-          </div>
-        ))}
+    <AdminShell
+      title="Yazılar"
+      action={
+        <Link href="/admin/yazi/yeni" style={{ ...btnPrimary, display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
+          Yeni yazı ekle
+        </Link>
+      }
+    >
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 14 }}>
+        <div>
+          <label style={label}>Yazar</label>
+          <select style={ctl} value={author} onChange={e => { setAuthor(e.target.value); reset() }}>
+            <option value="">Tüm yazarlar</option>
+            {authors.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={label}>Kategori</label>
+          <select style={ctl} value={cat} onChange={e => { setCat(e.target.value); reset() }}>
+            <option value="">Tüm kategoriler</option>
+            {categories.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={label}>Durum</label>
+          <select style={ctl} value={status} onChange={e => { setStatus(e.target.value); reset() }}>
+            <option value="">Tümü</option>
+            <option value="published">Yayında</option>
+            <option value="draft">Taslak</option>
+          </select>
+        </div>
+        <div>
+          <label style={label}>Ara</label>
+          <input style={ctl} value={search} placeholder="Başlıkta ara" onChange={e => { setSearch(e.target.value); reset() }} />
+        </div>
       </div>
 
-      {/* Yazılar */}
-      <div style={{ marginBottom: '3rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
-          <h2 style={{ fontSize: '1.2rem' }}>Yazılar</h2>
-          <Link href="/admin/yazi/yeni" style={{ fontSize: '0.72rem', color: '#b5734a', letterSpacing: '0.1em' }}>+ yeni yazı</Link>
-        </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+        <select style={{ ...input, height: 32, width: 'auto', fontSize: '0.8rem' }} value={bulk} onChange={e => setBulk(e.target.value)}>
+          <option value="">Toplu işlem</option>
+          <option value="publish">Yayına al</option>
+          <option value="draft">Taslağa çek</option>
+          <option value="delete">Sil</option>
+        </select>
+        <button
+          onClick={runBulk}
+          disabled={!bulk || sel.size === 0 || busy}
+          style={{ ...btn, height: 32, fontSize: '0.8rem', opacity: (!bulk || sel.size === 0) ? 0.45 : 1 }}
+        >
+          {busy ? 'işleniyor…' : `Uygula${sel.size ? ` (${sel.size})` : ''}`}
+        </button>
+        <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: T.faint }}>
+          {filtered.length === posts.length ? `${posts.length} yazı` : `${filtered.length} / ${posts.length} yazı`}
+        </span>
+      </div>
 
-        {/* Filtreler */}
-        <div style={{ background: 'rgba(245,232,208,0.04)', borderRadius: 12, padding: '1rem 1.2rem', marginBottom: '1rem', border: '1px solid rgba(245,232,208,0.08)' }}>
-          {/* Arama */}
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <input
-              value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="yazı ara..."
-              style={{ flex: 1, minWidth: 180, padding: '0.45rem 0.85rem', background: 'rgba(245,232,208,0.07)', border: '1px solid rgba(245,232,208,0.12)', borderRadius: 8, color: '#f5e8d0', outline: 'none', fontSize: '0.8rem' }}
-            />
-            <span style={{ fontSize: '0.65rem', color: 'rgba(245,232,208,0.25)', whiteSpace: 'nowrap' }}>
-              {filtered.length}/{posts.length} yazı
-            </span>
-          </div>
-
-          {/* Durum */}
-          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.58rem', color: 'rgba(245,232,208,0.3)', letterSpacing: '0.15em', textTransform: 'uppercase', marginRight: 4 }}>durum</span>
-            {['tümü', 'yayında', 'taslak'].map(s => (
-              <button key={s} type="button" onClick={() => setFilterStatus(s)} style={selStyle(filterStatus === s)}>{s}</button>
-            ))}
-          </div>
-
-          {/* Kategori */}
-          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.58rem', color: 'rgba(245,232,208,0.3)', letterSpacing: '0.15em', textTransform: 'uppercase', marginRight: 4 }}>kategori</span>
-            <button type="button" onClick={() => setFilterCat('tümü')} style={selStyle(filterCat === 'tümü')}>tümü</button>
-            {cats.map(c => (
-              <button key={c} type="button" onClick={() => setFilterCat(c)} style={selStyle(filterCat === c)}>
-                {catLabels[c] ?? c}
-              </button>
-            ))}
-          </div>
-
-          {/* Yazar */}
-          {authors.length > 0 && (
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.58rem', color: 'rgba(245,232,208,0.3)', letterSpacing: '0.15em', textTransform: 'uppercase', marginRight: 4 }}>yazar</span>
-              <button type="button" onClick={() => setFilterAuthor('tümü')} style={selStyle(filterAuthor === 'tümü')}>tümü</button>
-              {authors.map(a => (
-                <button key={a} type="button" onClick={() => setFilterAuthor(a)} style={selStyle(filterAuthor === a)}>{a}</button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Tablo */}
-        <div style={{ background: 'rgba(245,232,208,0.04)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(245,232,208,0.08)' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid rgba(245,232,208,0.1)' }}>
-                {['Başlık', 'Yazar', 'Kategori', 'Durum', 'Tarih', ''].map(h => (
-                  <th key={h} style={{ padding: '0.9rem 1.2rem', textAlign: 'left', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(245,232,208,0.4)' }}>{h}</th>
-                ))}
+      <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+          <thead>
+            <tr>
+              <th style={{ ...th, width: 38 }}>
+                <input type="checkbox" aria-label="Tümünü seç" checked={rows.length > 0 && sel.size === rows.length} onChange={toggleAll} />
+              </th>
+              <th style={th}>Başlık</th>
+              <th style={{ ...th, width: 150 }}>Yazar</th>
+              <th style={{ ...th, width: 105 }}>Kategori</th>
+              <th style={{ ...th, width: 92 }}>Durum</th>
+              <th style={{ ...th, width: 100 }}>Tarih</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length === 0 ? (
+              <tr><td colSpan={6} style={{ ...td, textAlign: 'center', padding: '40px 12px', color: T.faint }}>Sonuç bulunamadı</td></tr>
+            ) : rows.map(p => (
+              <tr key={p.id}>
+                <td style={td}>
+                  <input type="checkbox" aria-label="Seç" checked={sel.has(p.id)} onChange={() => toggle(p.id)} />
+                </td>
+                <td style={td}>
+                  <Link href={`/admin/yazi/${p.id}`} style={{ color: T.text, fontWeight: 500, textDecoration: 'none', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {p.title}
+                  </Link>
+                  <span style={{ fontSize: '0.72rem', color: T.faint }}>
+                    <Link href={`/admin/yazi/${p.id}`} style={{ color: T.terra, textDecoration: 'none' }}>Düzenle</Link>
+                    {' · '}
+                    <a href={`/yazi/${p.slug}`} target="_blank" rel="noopener" style={{ color: T.terra, textDecoration: 'none' }}>Önizle</a>
+                    {' · '}
+                    <button onClick={() => removeOne(p)} style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: T.danger, cursor: 'pointer' }}>Sil</button>
+                  </span>
+                </td>
+                <td style={{ ...td, color: T.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.author_name ?? '—'}</td>
+                <td style={{ ...td, color: T.muted }}>{catName[p.category] ?? p.category}</td>
+                <td style={td}>
+                  <span style={{
+                    fontSize: '0.7rem', padding: '3px 9px', borderRadius: 20,
+                    background: p.published ? T.greenSoft : T.amberSoft,
+                    color: p.published ? T.green : T.amber,
+                  }}>
+                    {p.published ? 'Yayında' : 'Taslak'}
+                  </span>
+                </td>
+                <td style={{ ...td, color: T.faint, fontSize: '0.78rem' }}>
+                  {new Date(p.created_at).toLocaleDateString('tr-TR')}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan={6} style={{ padding: '2.5rem', textAlign: 'center', color: 'rgba(245,232,208,0.3)', fontSize: '0.85rem' }}>Sonuç bulunamadı</td></tr>
-              ) : filtered.map(post => (
-                <tr key={post.id} style={{ borderBottom: '1px solid rgba(245,232,208,0.05)', transition: 'background 0.12s' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(245,232,208,0.03)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                >
-                  <td style={{ padding: '0.85rem 1.2rem', maxWidth: 280 }}>
-                    <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '0.88rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {post.title}
-                    </div>
-                  </td>
-                  <td style={{ padding: '0.85rem 1.2rem', fontSize: '0.75rem', color: 'rgba(245,232,208,0.55)', whiteSpace: 'nowrap' }}>
-                    {post.author_name ?? '—'}
-                  </td>
-                  <td style={{ padding: '0.85rem 1.2rem', fontSize: '0.68rem', color: '#b5734a', letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-                    {catLabels[post.category] ?? post.category}
-                  </td>
-                  <td style={{ padding: '0.85rem 1.2rem' }}>
-                    <span style={{
-                      fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase',
-                      padding: '0.22rem 0.65rem', borderRadius: 50,
-                      background: post.published ? 'rgba(122,140,114,0.2)' : 'rgba(181,115,74,0.15)',
-                      color: post.published ? '#7a8c72' : '#b5734a',
-                    }}>
-                      {post.published ? 'yayında' : 'taslak'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '0.85rem 1.2rem', fontSize: '0.7rem', color: 'rgba(245,232,208,0.4)', whiteSpace: 'nowrap' }}>
-                    {new Date(post.created_at).toLocaleDateString('tr-TR')}
-                  </td>
-                  <td style={{ padding: '0.85rem 1.2rem' }}>
-                    <Link href={`/admin/yazi/${post.id}`} style={{ fontSize: '0.7rem', color: '#b5734a', letterSpacing: '0.05em' }}>düzenle →</Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      {/* Üyeler */}
-      <div>
-        <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem' }}>Üyeler</h2>
-        <div style={{ background: 'rgba(245,232,208,0.04)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(245,232,208,0.08)' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid rgba(245,232,208,0.1)' }}>
-                {['Ad', 'E-posta', 'Rol', 'Katılım'].map(h => (
-                  <th key={h} style={{ padding: '0.9rem 1.2rem', textAlign: 'left', fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(245,232,208,0.4)' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {users.map(u => (
-                <tr key={u.id} style={{ borderBottom: '1px solid rgba(245,232,208,0.06)' }}>
-                  <td style={{ padding: '0.9rem 1.2rem', fontSize: '0.88rem' }}>{u.full_name ?? '—'}</td>
-                  <td style={{ padding: '0.9rem 1.2rem', fontSize: '0.82rem', color: 'rgba(245,232,208,0.6)' }}>{u.email}</td>
-                  <td style={{ padding: '0.9rem 1.2rem' }}>
-                    <span style={{ fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '0.2rem 0.6rem', borderRadius: 50, background: u.role === 'admin' ? 'rgba(181,115,74,0.2)' : 'rgba(245,232,208,0.08)', color: u.role === 'admin' ? '#b5734a' : 'rgba(245,232,208,0.5)' }}>{u.role}</span>
-                  </td>
-                  <td style={{ padding: '0.9rem 1.2rem', fontSize: '0.72rem', color: 'rgba(245,232,208,0.4)' }}>
-                    {new Date(u.created_at).toLocaleDateString('tr-TR')}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {pageCount > 1 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, fontSize: '0.8rem', color: T.muted }}>
+          <button style={{ ...btn, height: 30, padding: '0 10px' }} disabled={current === 1} onClick={() => { setPage(current - 1); setSel(new Set()) }}>‹</button>
+          <span>{current} / {pageCount}</span>
+          <button style={{ ...btn, height: 30, padding: '0 10px' }} disabled={current === pageCount} onClick={() => { setPage(current + 1); setSel(new Set()) }}>›</button>
         </div>
-      </div>
-    </>
+      )}
+    </AdminShell>
   )
 }
