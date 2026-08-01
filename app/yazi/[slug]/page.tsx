@@ -6,25 +6,9 @@ import { notFound } from 'next/navigation'
 import { authorSlug } from '@/lib/authorSlug'
 import { cleanContent } from '@/lib/cleanContent'
 import AdBanner from '@/components/AdBanner'
+import { coverUrl } from '@/lib/coverUrl'
 
 const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', sinema: 'sinema', rehber: 'rehber', kitap: 'kitap' }
-
-const categoryImages: Record<string, string> = {
-  yasam:   'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80',
-  seyahat: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&q=80',
-  sanat:   'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=1200&q=80',
-  sinema:  'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1200&q=80',
-  rehber:  'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&q=80',
-  kitap:   'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1200&q=80',
-}
-
-// Eski WordPress sitesinden gelen (loveinartsz.com) görseller artık erişilemez
-function getCoverUrl(post: { cover_url: string | null; category: string }): string {
-  if (!post.cover_url || post.cover_url.includes('loveinartsz.com')) {
-    return categoryImages[post.category] ?? categoryImages.yasam
-  }
-  return post.cover_url
-}
 
 export default async function YaziPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -45,7 +29,7 @@ export default async function YaziPage({ params }: { params: Promise<{ slug: str
       <div style={{
         height: '55vh', minHeight: 360,
         background: 'linear-gradient(135deg, #d4c0a0, #a08060)',
-        backgroundImage: `url(${getCoverUrl(post)})`,
+        backgroundImage: `url(${coverUrl(post)})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',

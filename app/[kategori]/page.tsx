@@ -3,8 +3,9 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { coverStyle } from '@/lib/coverUrl'
 
-const valid = ['yasam', 'seyahat', 'sanat', 'sinema', 'rehber', 'kitap']
+const valid =['yasam', 'seyahat', 'sanat', 'sinema', 'rehber', 'kitap']
 const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', sinema: 'sinema', rehber: 'rehber', kitap: 'kitap' }
 const colors: Record<string, string> = { yasam: '#d4c0a0', seyahat: '#a0b8c0', sanat: '#c0b0c8', sinema: '#b89aa8', rehber: '#a0c0a8', kitap: '#c8c0a0' }
 
@@ -53,7 +54,11 @@ export default async function KategoriPage({ params }: { params: Promise<{ kateg
                 border: '1px solid var(--border)', display: 'block',
                 transition: 'transform 0.25s, box-shadow 0.25s',
               }}>
-                <div style={{ height: 200, background: `linear-gradient(135deg, ${colors[kategori]}, #806040)` }} />
+                <div style={{
+                  height: 200,
+                  background: `linear-gradient(135deg, ${colors[kategori]}, #806040)`,
+                  ...coverStyle(post),
+                }} />
                 <div style={{ padding: '1.4rem' }}>
                   <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.1rem', fontWeight: 400, lineHeight: 1.35, marginBottom: '0.6rem' }}>
                     {post.title}

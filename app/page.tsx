@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
+import { coverUrl } from '@/lib/coverUrl'
 import Link from 'next/link'
 import WelcomeScreen from '@/components/WelcomeScreen'
 import HeroSlider from '@/components/HeroSlider'
@@ -13,14 +14,6 @@ const categoryColors: Record<string, string> = {
 const categoryLabels: Record<string, string> = {
   yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat',
   sinema: 'sinema', rehber: 'rehber', kitap: 'kitap',
-}
-const categoryImages: Record<string, string> = {
-  yasam: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
-  seyahat: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80',
-  sanat: 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=800&q=80',
-  sinema: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&q=80',
-  rehber: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&q=80',
-  kitap: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&q=80',
 }
 
 const editorialCats = [
@@ -101,9 +94,7 @@ export default async function Home() {
                   <div
                     className="editorial-img"
                     style={{
-                      backgroundImage: featured.cover_url
-                        ? `url(${featured.cover_url})`
-                        : `url(${categoryImages[slug] ?? ''})`,
+                      backgroundImage: `url(${coverUrl({ ...featured, category: slug })})`,
                     }}
                   />
                 </Link>
@@ -146,9 +137,7 @@ export default async function Home() {
               <div style={{
                 height: 200,
                 background: categoryColors[post.category] ?? '#8b2635',
-                backgroundImage: post.cover_url
-                  ? `url(${post.cover_url})`
-                  : `url(${categoryImages[post.category] ?? ''})`,
+                backgroundImage: `url(${coverUrl(post)})`,
                 backgroundSize: 'cover', backgroundPosition: 'center',
               }} />
               <div style={{ padding: '1.2rem' }}>

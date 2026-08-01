@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { authorSlug } from '@/lib/authorSlug'
+import { coverStyle } from '@/lib/coverUrl'
 
 const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', sinema: 'sinema', rehber: 'rehber', kitap: 'kitap' }
 const colors: Record<string, string> = { yasam: '#8b2635', seyahat: '#1e3a5f', sanat: '#5c3460', sinema: '#7a3b5c', rehber: '#2d5a3d', kitap: '#7a4f1a' }
@@ -69,7 +70,11 @@ export default async function YazarPage({ params }: { params: Promise<{ ad: stri
               border: '1px solid var(--border)', display: 'block',
               transition: 'transform 0.25s, box-shadow 0.25s',
             }}>
-              <div style={{ height: 160, background: `linear-gradient(135deg, ${colors[post.category] ?? '#8b2635'}, #806040)` }} />
+              <div style={{
+                height: 160,
+                background: `linear-gradient(135deg, ${colors[post.category] ?? '#8b2635'}, #806040)`,
+                ...coverStyle(post),
+              }} />
               <div style={{ padding: '1.4rem' }}>
                 <span style={{
                   display: 'inline-block', fontSize: '0.58rem', letterSpacing: '0.2em',

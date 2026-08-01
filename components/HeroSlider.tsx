@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { coverUrl } from '@/lib/coverUrl'
 
 type Post = {
   id: string
@@ -18,8 +19,6 @@ const categoryLabels: Record<string, string> = {
   yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat',
   sinema: 'sinema', rehber: 'rehber', kitap: 'kitap',
 }
-
-const defaultBg = 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=1600&q=80'
 
 export default function HeroSlider({ slides, interval = 8000 }: { slides: Post[]; interval?: number }) {
   const [idx, setIdx] = useState(0)
@@ -43,9 +42,7 @@ export default function HeroSlider({ slides, interval = 8000 }: { slides: Post[]
         key={current.id}
         className="hero-full-bg anim-fade-in"
         style={{
-          backgroundImage: current.cover_url
-            ? `url(${current.cover_url})`
-            : `url(${defaultBg})`,
+          backgroundImage: `url(${coverUrl(current)})`,
         }}
       />
       <div className="hero-full-overlay" />
