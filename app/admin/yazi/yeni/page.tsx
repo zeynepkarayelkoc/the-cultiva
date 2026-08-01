@@ -3,6 +3,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import AdminShell from '@/components/AdminShell'
+import { dosyaKontrol, MAKS_MB } from '@/lib/upload'
 
 const toSlug = (s: string) =>
   s.toLowerCase().trim()
@@ -128,6 +129,8 @@ export default function YeniYaziPage() {
   }, [])
 
   const uploadFile = async (file: File, folder: string): Promise<string | null> => {
+    const sorun = dosyaKontrol(file)
+    if (sorun) { alert(sorun); return null }
     const ext  = file.name.split('.').pop()
     const path = `${folder}/${Date.now()}.${ext}`
     const { error } = await supabase.storage.from('images').upload(path, file, { upsert: true })

@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import AdminShell from '@/components/AdminShell'
+import { dosyaKontrol, MAKS_MB } from '@/lib/upload'
 
 export default function YaziDuzenle() {
   const { id } = useParams() as { id: string }
@@ -207,6 +208,8 @@ export default function YaziDuzenle() {
                 </button>
                 <input ref={coverFileRef} type="file" accept="image/*" onChange={async e => {
                   const file = e.target.files?.[0]; if (!file) return
+                  const sorun = dosyaKontrol(file)
+                  if (sorun) { alert(sorun); e.target.value = ''; return }
                   setUploading(true)
                   const ext = file.name.split('.').pop()
                   const path = `covers/${Date.now()}.${ext}`

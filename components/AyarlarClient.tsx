@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import AdminShell from './AdminShell'
 import { T, input, btn, btnPrimary, label } from '@/lib/adminTheme'
+import { dosyaKontrol, MAKS_MB } from '@/lib/upload'
 
 type Ayarlar = {
   site_title: string
@@ -45,7 +46,10 @@ export default function AyarlarClient({
   }
 
   const ikonYukle = async (dosya: File) => {
-    setYukleniyor(true); setErr(''); setMsg('')
+    setErr(''); setMsg('')
+    const sorun = dosyaKontrol(dosya)
+    if (sorun) { setErr(sorun); return }
+    setYukleniyor(true)
     const uzanti = dosya.name.split('.').pop() ?? 'png'
     const yol = `site/favicon-${Date.now()}.${uzanti}`
     const { error: upErr } = await supabase.storage.from('images').upload(yol, dosya, { upsert: true })
@@ -116,7 +120,7 @@ export default function AyarlarClient({
           />
         </div>
         <div style={{ fontSize: '0.7rem', color: T.faint, marginTop: 6 }}>
-          Kare, en az 180×180 piksel önerilir. Varsayılana dönmek için kutuya <code>/icon.png</code> yaz.
+          Kare, en az 180×180 piksel önerilir, en fazla {MAKS_MB} MB. Varsayılana dönmek için kutuya <code>/icon.png</code> yaz.
         </div>
 
         {/* Google önizlemesi */}

@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import AdminShell from './AdminShell'
 import { T, input, btn, btnPrimary, label } from '@/lib/adminTheme'
 import type { Quiz, QuizQuestion, QuizOutcome } from '@/lib/quiz'
+import { dosyaKontrol, MAKS_MB } from '@/lib/upload'
 
 type Kategori = { slug: string; name: string }
 type Yazi = { id: string; title: string }
@@ -110,6 +111,8 @@ export default function TestEditor({
 
   const dosyaSecildi = async (dosya: File) => {
     setErr(''); setMsg('')
+    const sorun = dosyaKontrol(dosya)
+    if (sorun) { setYukleniyor(null); setErr(sorun); return }
     // Yol dosya adından türetiliyor; upsert sayesinde çakışma sorun olmuyor.
     const temizAd = dosya.name.replace(/[^a-zA-Z0-9._-]/g, '-')
     const yol = `quiz/${quiz.id}/${yukleniyor}-${temizAd}`
@@ -290,7 +293,7 @@ export default function TestEditor({
           <textarea style={{ ...input, height: 62, padding: '8px 10px', resize: 'vertical', lineHeight: 1.6, marginBottom: 12 }}
             value={aciklama} onChange={e => setAciklama(e.target.value)} placeholder="Kartlarda ve test girişinde görünür" />
 
-          <label style={label}>Kapak görseli</label>
+          <label style={label}>Kapak görseli (en fazla {MAKS_MB} MB)</label>
           <GorselAlani
             deger={kapak} ata={setKapak} yukseklik={90}
             yukleniyorMu={yukleniyor === 'kapak'}
@@ -334,7 +337,7 @@ export default function TestEditor({
             <input style={{ ...input, marginBottom: 8, fontSize: '0.82rem' }} value={q.hint ?? ''} placeholder="İpucu (isteğe bağlı)"
               onChange={e => soruGuncelle(q.id, { hint: e.target.value })} />
 
-            <label style={{ ...label, marginTop: 4 }}>Soru görseli (isteğe bağlı)</label>
+            <label style={{ ...label, marginTop: 4 }}>Soru görseli (isteğe bağlı, en fazla {MAKS_MB} MB)</label>
             <div style={{ marginBottom: 10 }}>
               <GorselAlani
                 deger={q.image_url ?? ''}
@@ -417,7 +420,7 @@ export default function TestEditor({
 
             {!bilgi && (
               <>
-                <label style={label}>Sonuç görseli (isteğe bağlı)</label>
+                <label style={label}>Sonuç görseli (isteğe bağlı, en fazla {MAKS_MB} MB)</label>
                 <GorselAlani
                   deger={o.image_url ?? ''}
                   ata={v => sonucGuncelle(o.id, { image_url: v })}
