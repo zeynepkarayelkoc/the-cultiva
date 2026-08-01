@@ -2,14 +2,29 @@ import type { Metadata, Viewport } from 'next'
 import Script from 'next/script'
 import './globals.css'
 import SiteChrome from '@/components/SiteChrome'
+import { siteAyarlari } from '@/lib/siteSettings'
 
 // Google AdSense Publisher ID — AdSense hesabın onaylandıktan sonra
 // https://adsense.google.com → Account → Account information → Publisher ID
 const ADSENSE_PUBLISHER_ID = 'ca-pub-XXXXXXXXXXXXXXXX'  // ← buraya yaz
 
-export const metadata: Metadata = {
-  title: 'The Cultiva — yaşam, sanat & seyahat',
-  description: 'Hayatı, sanatı ve yolculuğu birlikte keşfedenler için bir alan.',
+// Başlık, açıklama ve site ikonu panelden (Ayarlar) yönetilir.
+export async function generateMetadata(): Promise<Metadata> {
+  const a = await siteAyarlari()
+  return {
+    title: a.site_title,
+    description: a.site_description,
+    icons: {
+      icon: a.favicon_url,
+      shortcut: a.favicon_url,
+      apple: a.apple_icon_url,
+    },
+    openGraph: {
+      title: a.site_title,
+      description: a.site_description,
+      type: 'website',
+    },
+  }
 }
 
 export const viewport: Viewport = {

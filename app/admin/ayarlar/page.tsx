@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AyarlarClient from '@/components/AyarlarClient'
+import { siteAyarlari } from '@/lib/siteSettings'
 
 export default async function AyarlarPage() {
   const supabase = await createClient()
@@ -11,7 +12,8 @@ export default async function AyarlarPage() {
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') redirect('/')
 
-  const [{ count: postCount }, { count: authorCount }, { count: catCount }] = await Promise.all([
+  const [ayarlar, posts, authors, cats] = await Promise.all([
+    siteAyarlari(),
     supabase.from('posts').select('id', { count: 'exact', head: true }),
     supabase.from('authors').select('id', { count: 'exact', head: true }),
     supabase.from('categories').select('id', { count: 'exact', head: true }),
@@ -20,7 +22,12 @@ export default async function AyarlarPage() {
   return (
     <AyarlarClient
       email={user.email ?? ''}
-      stats={{ posts: postCount ?? 0, authors: authorCount ?? 0, categories: catCount ?? 0 }}
+      ayarlar={ayarlar}
+      stats={{
+        posts: posts.count ?? 0,
+        authors: authors.count ?? 0,
+        categories: cats.count ?? 0,
+      }}
     />
   )
 }
