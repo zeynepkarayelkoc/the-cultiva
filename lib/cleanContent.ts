@@ -8,9 +8,12 @@ export function cleanContent(html: string): string {
 
   let out = html
 
-  // 1) loveinartsz.com görseli içeren <figure>...</figure> bloklarını sil
+  // 1) loveinartsz.com görseli içeren <figure>...</figure> bloklarını sil.
+  //    (?:(?!<\/?figure)[\s\S])*? kalıbı sayesinde eşleşme başka bir <figure>
+  //    etiketinin üzerinden atlayamaz — yoksa iki figür arasındaki gerçek
+  //    metin de silinirdi.
   out = out.replace(
-    /<figure[^>]*>[\s\S]*?loveinartsz\.com[\s\S]*?<\/figure>/gi,
+    /<figure\b(?:(?!<\/?figure\b)[\s\S])*?loveinartsz\.com(?:(?!<\/?figure\b)[\s\S])*?<\/figure>/gi,
     ''
   )
 
@@ -20,7 +23,20 @@ export function cleanContent(html: string): string {
     ''
   )
 
-  // 3) Görsel çıkınca geriye kalan boş paragrafları temizle
+  // 3) style="background-image:url(...loveinartsz...)" bildirimlerini sil.
+  //    Blok içindeki metin korunur, sadece kırık arka plan görseli kalkar.
+  out = out.replace(
+    /background-image\s*:\s*url\(\s*['"]?[^)'"]*loveinartsz\.com[^)'"]*['"]?\s*\)\s*;?/gi,
+    ''
+  )
+
+  // 4) Ölü loveinartsz.com linklerini metne çevir (etiket gider, yazı kalır)
+  out = out.replace(
+    /<a\b[^>]*loveinartsz\.com[^>]*>([\s\S]*?)<\/a>/gi,
+    '$1'
+  )
+
+  // 5) Görsel/link çıkınca geriye kalan boş paragrafları temizle
   out = out.replace(/<p>(\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, '')
 
   return out
