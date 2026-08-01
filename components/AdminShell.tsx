@@ -8,6 +8,7 @@ const MENU: { href: string; label: string; icon: string; exact?: boolean }[] = [
   { href: '/admin/yazi/yeni',  label: 'Yeni yazı',   icon: '✎' },
   { href: '/admin/yazarlar',   label: 'Yazarlar',    icon: '☺' },
   { href: '/admin/kategoriler',label: 'Kategoriler', icon: '⌗' },
+  { href: '/admin/testler',    label: 'Testler',     icon: '◆' },
   { href: '/admin/anasayfa',   label: 'Ana sayfa',   icon: '★' },
   { href: '/admin/ayarlar',    label: 'Ayarlar',     icon: '⚙' },
 ]
