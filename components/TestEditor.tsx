@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -9,6 +9,51 @@ import type { Quiz, QuizQuestion, QuizOutcome } from '@/lib/quiz'
 
 type Kategori = { slug: string; name: string }
 type Yazi = { id: string; title: string }
+
+// Görsel adresi + yükle + kaldır üçlüsü.
+// Bileşen dosya seviyesinde tanımlı; render içinde tanımlansaydı her
+// tuş vuruşunda yeniden oluşur ve yazarken odak kaybolurdu.
+function GorselAlani({
+  deger, ata, yukseklik = 90, yukleniyorMu, onYukle, kilitli,
+}: {
+  deger: string
+  ata: (v: string) => void
+  yukseklik?: number
+  yukleniyorMu: boolean
+  onYukle: () => void
+  kilitli: boolean
+}) {
+  return (
+    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+      <div style={{
+        width: yukseklik * 1.5, height: yukseklik, borderRadius: 8, flexShrink: 0,
+        border: `1px solid ${T.border}`,
+        background: deger ? `#fff url(${deger}) center/cover no-repeat` : '#f7f3ec',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: '0.7rem', color: T.faint,
+      }}>
+        {deger ? '' : 'görsel yok'}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <input
+          style={{ ...input, height: 32, fontSize: '0.78rem', marginBottom: 6 }}
+          value={deger} placeholder="https://… ya da yükle"
+          onChange={e => ata(e.target.value)}
+        />
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button style={{ ...btn, height: 30, fontSize: '0.75rem' }} onClick={onYukle} disabled={kilitli}>
+            {yukleniyorMu ? 'yükleniyor…' : 'Görsel yükle'}
+          </button>
+          {deger && (
+            <button style={{ ...btn, height: 30, fontSize: '0.75rem', color: T.danger }} onClick={() => ata('')}>
+              Kaldır
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function TestEditor({
   quiz, categories, posts,
@@ -51,6 +96,31 @@ export default function TestEditor({
   const [aiCalisiyor, setAiCalisiyor] = useState(false)
 
   const yeniId = () => `yeni-${Math.random().toString(36).slice(2, 10)}`
+
+  /* ---------- görsel yükleme ---------- */
+  const dosyaRef = useRef<HTMLInputElement>(null)
+  const hedefRef = useRef<((url: string) => void) | null>(null)
+  const [yukleniyor, setYukleniyor] = useState<string | null>(null)
+
+  const gorselSec = (anahtar: string, ata: (url: string) => void) => {
+    hedefRef.current = ata
+    setYukleniyor(anahtar)
+    dosyaRef.current?.click()
+  }
+
+  const dosyaSecildi = async (dosya: File) => {
+    setErr(''); setMsg('')
+    // Yol dosya adından türetiliyor; upsert sayesinde çakışma sorun olmuyor.
+    const temizAd = dosya.name.replace(/[^a-zA-Z0-9._-]/g, '-')
+    const yol = `quiz/${quiz.id}/${yukleniyor}-${temizAd}`
+    const { error } = await supabase.storage.from('images').upload(yol, dosya, { upsert: true })
+    if (error) { setYukleniyor(null); setErr(error.message); return }
+    const { data } = supabase.storage.from('images').getPublicUrl(yol)
+    hedefRef.current?.(data.publicUrl)
+    setYukleniyor(null)
+    setMsg('Görsel yüklendi, kaydetmeyi unutma.')
+  }
+
 
   /* ---------- soru işlemleri ---------- */
   const soruEkle = () => setSorular(s => [...s, {
@@ -187,6 +257,15 @@ export default function TestEditor({
         </div>
       }
     >
+      <input
+        ref={dosyaRef} type="file" accept="image/*" hidden
+        onChange={e => {
+          const f = e.target.files?.[0]
+          e.target.value = ''
+          if (f) dosyaSecildi(f)
+        }}
+      />
+
       <div style={{ maxWidth: 780 }}>
         {/* Künye */}
         <div style={kutu}>
@@ -211,8 +290,13 @@ export default function TestEditor({
           <textarea style={{ ...input, height: 62, padding: '8px 10px', resize: 'vertical', lineHeight: 1.6, marginBottom: 12 }}
             value={aciklama} onChange={e => setAciklama(e.target.value)} placeholder="Kartlarda ve test girişinde görünür" />
 
-          <label style={label}>Kapak görseli adresi</label>
-          <input style={input} value={kapak} onChange={e => setKapak(e.target.value)} placeholder="https://…" />
+          <label style={label}>Kapak görseli</label>
+          <GorselAlani
+            deger={kapak} ata={setKapak} yukseklik={90}
+            yukleniyorMu={yukleniyor === 'kapak'}
+            kilitli={yukleniyor !== null}
+            onYukle={() => gorselSec('kapak', setKapak)}
+          />
         </div>
 
         {/* AI */}
@@ -249,6 +333,18 @@ export default function TestEditor({
               onChange={e => soruGuncelle(q.id, { text: e.target.value })} />
             <input style={{ ...input, marginBottom: 8, fontSize: '0.82rem' }} value={q.hint ?? ''} placeholder="İpucu (isteğe bağlı)"
               onChange={e => soruGuncelle(q.id, { hint: e.target.value })} />
+
+            <label style={{ ...label, marginTop: 4 }}>Soru görseli (isteğe bağlı)</label>
+            <div style={{ marginBottom: 10 }}>
+              <GorselAlani
+                deger={q.image_url ?? ''}
+                ata={v => soruGuncelle(q.id, { image_url: v })}
+                yukseklik={76}
+                yukleniyorMu={yukleniyor === `soru-${q.id}`}
+                kilitli={yukleniyor !== null}
+                onYukle={() => gorselSec(`soru-${q.id}`, v => soruGuncelle(q.id, { image_url: v }))}
+              />
+            </div>
 
             <div style={{ display: 'grid', gap: 6, marginBottom: 8 }}>
               {q.quiz_options.map((o, oi) => (
@@ -315,9 +411,23 @@ export default function TestEditor({
               </div>
               <button onClick={() => sonucSil(o.id)} style={{ ...btn, height: 34, color: T.danger }}>Sil</button>
             </div>
-            <textarea style={{ ...input, height: 56, padding: '8px 10px', resize: 'vertical', lineHeight: 1.6 }}
+            <textarea style={{ ...input, height: 56, padding: '8px 10px', resize: 'vertical', lineHeight: 1.6, marginBottom: 10 }}
               value={o.description ?? ''} placeholder="Sonuç açıklaması"
               onChange={e => sonucGuncelle(o.id, { description: e.target.value })} />
+
+            {!bilgi && (
+              <>
+                <label style={label}>Sonuç görseli (isteğe bağlı)</label>
+                <GorselAlani
+                  deger={o.image_url ?? ''}
+                  ata={v => sonucGuncelle(o.id, { image_url: v })}
+                  yukseklik={70}
+                  yukleniyorMu={yukleniyor === `sonuc-${o.id}`}
+                  kilitli={yukleniyor !== null}
+                  onYukle={() => gorselSec(`sonuc-${o.id}`, v => sonucGuncelle(o.id, { image_url: v }))}
+                />
+              </>
+            )}
           </div>
         ))}
 
