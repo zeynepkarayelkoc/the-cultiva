@@ -40,15 +40,21 @@ export default function YaziDuzenle() {
       setPublished(data.published ?? false)
       setCoverUrl(data.cover_url ?? '')
       setAuthorName(data.author_name ?? '')
-      const html = data.content ?? ''
-      setContentHtml(html)
-      if (editorRef.current) editorRef.current.innerHTML = html
+      setContentHtml(data.content ?? '')
       setLoading(false)
     })
     supabase.from('profiles').select('id, full_name').then(({ data }) => {
       if (data) setAuthors(data)
     })
   }, [id])
+
+  // Yazı yüklenirken editör henüz DOM'da olmadığı için içeriği o anda
+  // yazamıyoruz. Loading bitip editör mount olduktan sonra bir kez doldur.
+  useEffect(() => {
+    if (loading) return
+    const el = editorRef.current
+    if (el && el.innerHTML === '') el.innerHTML = contentHtml
+  }, [loading])
 
   const exec = useCallback((cmd: string, value?: string) => {
     document.execCommand(cmd, false, value)
@@ -62,10 +68,19 @@ export default function YaziDuzenle() {
 
   const handle = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Güvenlik: editör boşken kaydetmek mevcut içeriği silmesin.
+    const editorHtml = editorRef.current?.innerHTML ?? ''
+    const bos = editorHtml.replace(/<[^>]+>|&nbsp;|\s/g, '') === ''
+    if (bos && contentHtml.trim() !== '') {
+      setError('İçerik boş görünüyor — kayıt iptal edildi. Sayfayı yenileyip tekrar dene.')
+      return
+    }
+
     setSaving(true); setError(''); setSuccess('')
     const { error: err } = await supabase.from('posts').update({
       title, slug, excerpt, cover_url: coverUrl || null,
-      content: editorRef.current?.innerHTML ?? contentHtml,
+      content: editorHtml,
       category, read_time: readTime, published,
       author_name: authorName || null,
     }).eq('id', id)
