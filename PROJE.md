@@ -177,8 +177,11 @@ ciddileşirse puanlama sunucuya taşınmalı.
 ### generate-test skill
 
 Konu başlığından test üretip siteye yükler. Önce **test tipi** sorulur (puanlı bilgi
-testi mi, "sen kimsin" kişilik testi mi), sonra soru sayısı ve ton. Ardından
-`POST /api/quiz-import` ile tek istekte kaydedilir. Uç nokta doğrulama yapar ve
+testi mi, "sen kimsin" kişilik testi mi), sonra soru sayısı (varsayılan 10). Bilgi
+testinde ayrıca **zorluk** (kolay / orta / zor / imkansız) ve ton sorulur; zorluk
+hem soruların bilinirliğini hem de rozet eşiklerini belirler. Kişilik testinde
+zorluk sorulmaz, onun yerine tip ekseni seçilir. Ardından `POST /api/quiz-import`
+ile tek istekte kaydedilir. Uç nokta doğrulama yapar ve
 hata durumunda yarım kayıt bırakmaz. İstek kullanıcının giriş yapmış tarayıcı
 sekmesinden gider (oturum çerezi gerekir).
 
