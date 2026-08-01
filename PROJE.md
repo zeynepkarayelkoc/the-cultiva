@@ -158,10 +158,17 @@ Tüm tablolarda satır güvenliği **açık**. Genel kural:
 - **Bilgi testi** (`type: 'bilgi'`): doğru cevabı olan sorular. Puan = her doğru 100 +
   soru başına 24 saniyeden hızlı çözülen her saniye için 2 puan bonus.
   Sonuçlar `quiz_outcomes.min_correct` eşiklerine göre rozet verir.
-- **Kişilik testi** (`type: 'kisilik'`): doğru cevap yok. Her şık bir `outcome_key`
-  gösterir, en çok işaretlenen tip sonuç olur.
+- **Kişilik testi** (`type: 'kisilik'`): "Hangi Friends karakterisin" formatı. Doğru
+  cevap yok, her şık bir `outcome_key` gösterir ve en çok işaretlenen tip sonuç olur.
+  Sonuç ekranında "Sonucu paylaş" düğmesi vardır: cihaz destekliyorsa sistem paylaşım
+  penceresini açar, desteklemiyorsa bağlantıyı panoya kopyalar. Deneme `score: 0` ile
+  kaydedilir, yani profilde görünür ama şampiyonluk tablosunu kirletmez.
 
 Giriş yapmadan da çözülür; puanın kaydedilmesi ve sıralamaya girmek için giriş gerekir.
+
+Kişilik testi yazarken dikkat: her sorunun **her** şıkkına `outcome_key` verilmeli ve
+her soruda 4 tipin dördü de birer kez temsil edilmeli, yoksa bazı tipler matematiksel
+olarak dezavantajlı kalır.
 
 **Bilinen sınır:** Puanlama tarayıcıda hesaplanır, teknik bilgisi olan biri sahte
 puan gönderebilir. Eğlence amaçlı bir özellik için kabul edilebilir; sıralama
@@ -169,7 +176,8 @@ ciddileşirse puanlama sunucuya taşınmalı.
 
 ### generate-test skill
 
-Konu başlığından test üretip siteye yükler. Soru sayısı ve ton sorulur, sonra
+Konu başlığından test üretip siteye yükler. Önce **test tipi** sorulur (puanlı bilgi
+testi mi, "sen kimsin" kişilik testi mi), sonra soru sayısı ve ton. Ardından
 `POST /api/quiz-import` ile tek istekte kaydedilir. Uç nokta doğrulama yapar ve
 hata durumunda yarım kayıt bırakmaz. İstek kullanıcının giriş yapmış tarayıcı
 sekmesinden gider (oturum çerezi gerekir).
