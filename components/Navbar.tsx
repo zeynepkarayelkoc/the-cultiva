@@ -31,7 +31,6 @@ export default function Navbar() {
     { href: '/yasam', label: 'yaşam' },
     { href: '/seyahat', label: 'seyahat' },
     { href: '/sanat', label: 'sanat' },
-    { href: '/testler', label: 'testler' },
     { href: '/sinema', label: 'sinema' },
     { href: '/rehber', label: 'rehber' },
     { href: '/kitap', label: 'kitap' },
@@ -56,7 +55,7 @@ export default function Navbar() {
 
       {/* Masaüstü orta menü */}
       <ul className="nav-desktop" style={{ display: 'flex', gap: '2rem', listStyle: 'none' }}>
-        {categories.slice(0, 3).map(({ href, label }) => (
+        {[...categories.slice(0, 3), { href: '/testler', label: 'testler' }].map(({ href, label }) => (
           <li key={href}>
             <Link href={href} className="nav-link" style={{
               fontSize: '0.75rem',
@@ -120,7 +119,7 @@ export default function Navbar() {
           display: 'flex', flexDirection: 'column',
           padding: '0.5rem 1.5rem 1.5rem',
         }}>
-          {categories.map(({ href, label }) => (
+          {[...categories, { href: '/testler', label: 'testler' }].map(({ href, label }) => (
             <Link key={href} href={href} style={{
               fontSize: '0.9rem', letterSpacing: '0.08em', textTransform: 'uppercase',
               color: pathname.startsWith(href) ? 'var(--terra)' : 'var(--text)',

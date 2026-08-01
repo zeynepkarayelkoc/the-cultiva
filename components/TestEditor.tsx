@@ -24,9 +24,21 @@ export default function TestEditor({
   const [kategori, setKategori] = useState(quiz.category ?? '')
   const [yayinda, setYayinda] = useState(quiz.published)
 
+  // Her sorunun en az 4 şık satırı olsun; eksikse boş satırlarla tamamla,
+  // yoksa şıkkı silinmiş/hiç girilmemiş sorulara şık eklenemez.
   const [sorular, setSorular] = useState<QuizQuestion[]>(
-    [...quiz.quiz_questions].sort((a, b) => a.position - b.position)
-      .map(q => ({ ...q, quiz_options: [...q.quiz_options].sort((a, b) => a.position - b.position) })),
+    [...quiz.quiz_questions].sort((a, b) => a.position - b.position).map(q => {
+      const mevcut = [...q.quiz_options].sort((a, b) => a.position - b.position)
+      const eksik = Math.max(0, 4 - mevcut.length)
+      const bosSatirlar = Array.from({ length: eksik }, (_, k) => ({
+        id: `bos-${q.id}-${k}`,
+        position: mevcut.length + k,
+        text: '',
+        is_correct: mevcut.length === 0 && k === 0,
+        outcome_key: null,
+      }))
+      return { ...q, quiz_options: [...mevcut, ...bosSatirlar] }
+    }),
   )
   const [sonuclar, setSonuclar] = useState<QuizOutcome[]>(
     [...quiz.quiz_outcomes].sort((a, b) => (b.min_correct ?? 0) - (a.min_correct ?? 0)),
