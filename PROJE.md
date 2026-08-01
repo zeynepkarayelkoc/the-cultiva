@@ -1,128 +1,240 @@
-# The Cultiva — Proje Dökümanı
+# The Cultiva - Proje Dökümanı
 
-**Site:** yaşam, sanat ve seyahat üzerine kişisel blog  
-**Stack:** Next.js (App Router) + Supabase + Vercel  
-**GitHub:** https://github.com/zeynepkarayelkoc/the-cultiva  
-**Canlı site:** https://www.thecultiva.com (Vercel: the-cultiva-web)
+**Site:** yaşam, sanat ve seyahat üzerine kişisel dergi
+**Stack:** Next.js 16 (App Router) + Supabase + Vercel
+**GitHub:** https://github.com/zeynepkarayelkoc/the-cultiva
+**Canlı site:** https://www.thecultiva.com (Vercel projesi: `the-cultiva-web`)
+
+> Bu dosya projenin haritasıdır. Bir hata ararken ya da yeni özellik eklerken
+> önce buraya bak, ilgili dosyayı buradan bulup doğrudan oraya git.
+
+---
+
+## Projenin amacı
+
+Kapanmış WordPress sitesi `loveinartsz.com`'un 510 yazısını taşımak ve üzerine
+kendi kendine yeten bir yayın platformu kurmak. Hedef, siteyi geliştirici
+yardımı olmadan yönetebilmek: yazı yazmak, yazar ve kategori eklemek, site
+kimliğini değiştirmek ve test yayınlamak panelden yapılır.
 
 ---
 
 ## Sayfalar
 
+### Okuyucu tarafı
+
 | Sayfa | URL | Açıklama |
 |-------|-----|----------|
-| Ana Sayfa | `/` | Michelangelo welcome ekranı (bir kez gösterilir), hero bölümü, kategori linkleri, son yazılar |
-| Kategori | `/yasam` `/seyahat` `/sanat` | Kategoriye göre filtrelenmiş yazı listesi |
-| Yazı | `/yazi/[slug]` | Yazı detay sayfası — başlık, yazar, tarih, içerik |
-| Yazar | `/yazar/[ad]` | Bir yazarın tüm yazıları (yazar adından üretilen slug ile eşleşir) |
+| Ana sayfa | `/` | Hero kaydırıcı (öne çıkan yazılar), kategori sütunları, son yazılar |
+| Kategori | `/yasam` `/sanat` `/seyahat` `/sinema` `/kitap` `/rehber` | Kategoriye göre yazı listesi |
+| Yazı | `/yazi/[slug]` | Yazı detayı, kapak, yazar linki, reklam alanı |
+| Yazar | `/yazar/[ad]` | Bir yazarın tüm yazıları |
+| Testler | `/testler` | Yayındaki testlerin listesi |
+| Test | `/test/[slug]` | Test çözme ekranı (bilgi ve kişilik) |
+| Şampiyonluk | `/testler/siralama` | Toplam puana göre kullanıcı sıralaması |
 | Giriş | `/giris` | Okuyucu girişi (Supabase Auth) |
-| Üye Paneli | `/panel` | Giriş yapmış kullanıcının profil sayfası (korumalı) |
-| Admin Giriş | `/admin/giris` | Admin kullanıcısı için ayrı giriş sayfası |
-| Admin Panel | `/admin` | Yazı listesi, yayınla/taslak/sil (korumalı) |
-| Yeni Yazı | `/admin/yazi/yeni` | WordPress tarzı rich text editörü, kapak görseli yükleme |
-| Yazı Düzenle | `/admin/yazi/[id]` | Mevcut yazıyı düzenle, sil, yayınla |
+| Üye paneli | `/panel` | Kaydedilen yazılar + test karnesi (korumalı) |
+
+### Yönetim paneli
+
+Tümü `/admin` altında, açık temalı ve sol menülü. Menü `components/AdminShell.tsx`'te tanımlı.
+
+| Sayfa | URL | Açıklama |
+|-------|-----|----------|
+| Yazılar | `/admin` | Liste, filtreler (yazar/kategori/durum/arama), toplu işlem, sayfalama |
+| Yeni yazı | `/admin/yazi/yeni` | Zengin metin editörü, auto-save, SEO, zamanlama, AI asistan |
+| Yazı düzenle | `/admin/yazi/[id]` | Aynı editör, mevcut yazı üzerinde |
+| Yazarlar | `/admin/yazarlar` | Yazar ekle/düzenle, ad değişince yazılar da güncellenir |
+| Kategoriler | `/admin/kategoriler` | Kategori ekle/sil/yeniden adlandır |
+| Testler | `/admin/testler` | Test listesi ve yeni test oluşturma |
+| Test düzenle | `/admin/test/[id]` | Soru, şık, görsel, sonuç rozetleri; yazıdan AI ile soru üretme |
+| Ana sayfa | `/admin/anasayfa` | Kaydırıcıda hangi yazılar çıksın, geçiş süresi |
+| Ayarlar | `/admin/ayarlar` | Site başlığı, meta açıklama, site ikonu, hesap |
+| Admin giriş | `/admin/giris` | Ayrı giriş sayfası |
 
 ---
 
-## Önemli Dosyalar
+## Dosya haritası
 
 ```
 the-cultiva/
 ├── app/
-│   ├── page.tsx                  # Ana sayfa
-│   ├── layout.tsx                # Global layout, Navbar
-│   ├── globals.css               # CSS variables, animasyonlar
-│   ├── not-found.tsx             # 404 sayfası
-│   ├── [kategori]/page.tsx       # Kategori sayfası
-│   ├── yazi/[slug]/page.tsx      # Yazı detay (yazar adı /yazar sayfasına linkli)
-│   ├── yazar/[ad]/page.tsx       # Yazar sayfası — yazarın tüm yazıları
-│   ├── giris/page.tsx            # Okuyucu girişi
-│   ├── panel/page.tsx            # Üye paneli
-│   └── admin/
-│       ├── page.tsx              # Admin panel
-│       ├── giris/page.tsx        # Admin girişi
-│       └── yazi/
-│           ├── yeni/page.tsx     # Yeni yazı
-│           └── [id]/page.tsx     # Yazı düzenle
+│   ├── layout.tsx                    # Kök düzen; başlık/açıklama/ikon DB'den (generateMetadata)
+│   ├── page.tsx                      # Ana sayfa
+│   ├── globals.css                   # CSS değişkenleri, animasyonlar, .post-content stilleri
+│   ├── favicon.ico                   # Logodan üretilmiş site ikonu (RGBA olmalı!)
+│   ├── [kategori]/page.tsx           # Kategori listesi
+│   ├── yazi/[slug]/page.tsx          # Yazı detayı
+│   ├── yazar/[ad]/page.tsx           # Yazar sayfası
+│   ├── testler/page.tsx              # Test listesi
+│   ├── testler/siralama/page.tsx     # Şampiyonluk tablosu
+│   ├── test/[slug]/page.tsx          # Test çözme (QuizPlayer'ı sarar)
+│   ├── panel/page.tsx                # Üye paneli + test karnesi
+│   ├── giris/page.tsx
+│   ├── admin/…                       # Yukarıdaki tabloya bak
+│   └── api/
+│       ├── ai-assist/route.ts        # Yazı editörü AI yardımı (düzelt/özet/başlık)
+│       ├── quiz-generate/route.ts    # Bir yazıdan taslak test soruları üretir
+│       ├── quiz-import/route.ts      # Hazır testi tek istekte yükler (generate-test skill)
+│       └── publish-scheduled/route.ts# Zamanlanmış yazıları yayına alır (Vercel Cron)
 ├── components/
-│   ├── WelcomeScreen.tsx         # Michelangelo açılış ekranı
-│   └── Navbar.tsx                # Navbar (ana sayfada gizli)
+│   ├── AdminShell.tsx                # Panel kabuğu + sol menü  ← menüye madde eklemek için burası
+│   ├── AdminPanelClient.tsx          # Yazılar listesi
+│   ├── YazarlarClient.tsx            # Yazar yönetimi
+│   ├── KategorilerClient.tsx         # Kategori yönetimi
+│   ├── TestlerClient.tsx             # Test listesi
+│   ├── TestEditor.tsx                # Test editörü (soru/şık/görsel/sonuç)
+│   ├── AyarlarClient.tsx             # Site kimliği ayarları
+│   ├── QuizPlayer.tsx                # Test çözme akışı (istemci)
+│   ├── Navbar.tsx                    # Site üst menüsü
+│   ├── SiteChrome.tsx                # /admin altında Navbar'ı gizler
+│   ├── HeroSlider.tsx                # Ana sayfa kaydırıcı
+│   ├── AdBanner.tsx                  # AdSense alanı
+│   └── WelcomeScreen.tsx             # Açılış ekranı
 ├── lib/
-│   ├── supabase/
-│   │   ├── client.ts             # Browser-side Supabase client
-│   │   └── server.ts             # Server-side Supabase client
-│   └── authorSlug.ts             # Yazar adını URL-safe slug'a çevirir (TR karakter destekli)
-├── middleware.ts                 # Route koruması (panel + admin)
-├── public/
-│   └── logo.png                  # The Cultiva logosu (yatay, 1664x457)
-├── import_posts.mjs              # WordPress → Supabase import scripti
-├── wordpress_posts.json          # 509 yazının işlenmiş hali
-└── .env.local                    # Supabase URL ve anon key (git'e gitmiyor)
+│   ├── supabase/{client,server}.ts   # Supabase istemcileri (tarayıcı / sunucu)
+│   ├── adminTheme.ts                 # Panelin açık tema paleti ve ortak stiller
+│   ├── quiz.ts                       # Test tipleri, puanlama, sonuç seçimi
+│   ├── coverUrl.ts                   # Kapak görseli çözümü + kategori yedeği
+│   ├── cleanContent.ts               # WordPress içeriğindeki kırık görselleri temizler
+│   ├── siteSettings.ts               # Panelden yönetilen site ayarları
+│   ├── upload.ts                     # Görsel yükleme sınırı (5 MB) ve kontrolü
+│   └── authorSlug.ts                 # TR karakterli metni URL slug'ına çevirir
+├── vercel.json                       # Cron: her sabah 09:00 zamanlanmış yayın
+└── .env.local                        # Supabase URL + anon key (git'e gitmez)
 ```
 
 ---
 
 ## Supabase
 
-**Proje:** the-cultiva  
+**Proje:** the-cultiva
 **URL:** https://ksprrlcgdiyrjovbgqda.supabase.co
 
-### posts tablosu
-| Kolon | Tip | Açıklama |
-|-------|-----|----------|
-| id | uuid | Primary key |
-| title | text | Yazı başlığı |
-| slug | text | URL'de kullanılan kısa ad |
-| content | text | HTML içerik |
-| excerpt | text | Kısa özet |
-| cover_url | text | Kapak görseli URL |
-| category | text | yasam / seyahat / sanat / rehber / kitap |
-| published | boolean | Yayınlandı mı? |
-| read_time | int | Tahmini okuma süresi (dakika) |
-| author_name | text | Yazarın adı |
-| created_at | timestamp | Yayın tarihi |
+### Tablolar
+
+| Tablo | Ne işe yarar |
+|-------|--------------|
+| `posts` | Yazılar (510 kayıt) |
+| `profiles` | Kullanıcı hesapları, `role` alanı `admin` olabilir |
+| `saved_posts` | Kullanıcının kaydettiği yazılar |
+| `categories` | Kategoriler; `posts.category` buraya yabancı anahtarla bağlı |
+| `authors` | Yazarlar (52 kayıt); ad, e-posta, biyografi, foto |
+| `site_settings` | Anahtar/değer site ayarları (başlık, açıklama, ikon, kaydırıcı hızı) |
+| `quizzes` | Testler |
+| `quiz_questions` | Test soruları |
+| `quiz_options` | Soru şıkları (`is_correct` ya da `outcome_key`) |
+| `quiz_outcomes` | Sonuç rozetleri / kişilik tipleri |
+| `quiz_attempts` | Çözüm kayıtları; şampiyonluk tablosu buradan hesaplanır |
+
+`posts` ana kolonları: `title, slug, content, excerpt, cover_url, category,
+published, read_time, author_name, meta_title, meta_description, scheduled_at,
+featured, featured_order, created_at`
+
+### Güvenlik (RLS)
+
+Tüm tablolarda satır güvenliği **açık**. Genel kural:
+
+- **Okuma:** yayındaki içerik herkese açık, taslaklar sadece admine
+- **Yazma:** yalnızca `profiles.role = 'admin'` olan oturumlar
+- `quiz_attempts`: okuma herkese açık (sıralama için), ekleme sadece kendi adına
+
+> Not: `posts` tablosunda RLS bir dönem kapalıydı; politikalar yazılmış ama
+> etkinleştirilmemişti. Yani anon anahtarla tüm yazılar düzenlenebiliyordu.
+> Açıldı ve doğrulandı. Yeni tablo eklerken RLS'i açmayı unutma.
 
 ### Storage
-- Bucket: `images`
-- `images/covers/` — kapak görselleri
-- `images/content/` — yazı içi görseller
+
+- Bucket: `images`, herkese açık okuma
+- Dosya sınırı: **5 MB**, sadece görsel MIME tipleri
+- Klasörler: `covers/` (yazı kapakları), `content/` (yazı içi), `quiz/<test-id>/`, `site/` (favicon)
 
 ---
 
-## Kategoriler
+## Test modülü
 
-| Slug | Türkçe |
-|------|--------|
-| yasam | yaşam |
-| seyahat | seyahat |
-| sanat | sanat |
-| rehber | rehber |
-| kitap | kitap |
+İki tip test var:
+
+- **Bilgi testi** (`type: 'bilgi'`): doğru cevabı olan sorular. Puan = her doğru 100 +
+  soru başına 24 saniyeden hızlı çözülen her saniye için 2 puan bonus.
+  Sonuçlar `quiz_outcomes.min_correct` eşiklerine göre rozet verir.
+- **Kişilik testi** (`type: 'kisilik'`): doğru cevap yok. Her şık bir `outcome_key`
+  gösterir, en çok işaretlenen tip sonuç olur.
+
+Giriş yapmadan da çözülür; puanın kaydedilmesi ve sıralamaya girmek için giriş gerekir.
+
+**Bilinen sınır:** Puanlama tarayıcıda hesaplanır, teknik bilgisi olan biri sahte
+puan gönderebilir. Eğlence amaçlı bir özellik için kabul edilebilir; sıralama
+ciddileşirse puanlama sunucuya taşınmalı.
+
+### generate-test skill
+
+Konu başlığından test üretip siteye yükler. Soru sayısı ve ton sorulur, sonra
+`POST /api/quiz-import` ile tek istekte kaydedilir. Uç nokta doğrulama yapar ve
+hata durumunda yarım kayıt bırakmaz. İstek kullanıcının giriş yapmış tarayıcı
+sekmesinden gider (oturum çerezi gerekir).
+
+---
+
+## Dış servisler ve ortam değişkenleri
+
+Vercel → Settings → Environment Variables:
+
+| Değişken | Ne için |
+|----------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase adresi |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Tarayıcı istemcisi |
+| `SUPABASE_SERVICE_ROLE_KEY` | Zamanlanmış yayın görevi (RLS'i atlar) |
+| `ANTHROPIC_API_KEY` | AI yazı asistanı ve test sorusu üretimi |
+
+`NEXT_PUBLIC_` ile başlayanlar derleme sırasında koda gömülür; değiştirince
+yeniden deploy gerekir.
+
+**Vercel Hobby planı sınırları:** günde tek cron görevi (bu yüzden zamanlanmış
+yayın 09:00'da bir kez çalışır), dosya yükleme 50 MB (biz 5 MB'a çektik).
 
 ---
 
 ## Tasarım
 
-- **Renkler:** terra (#8b2635), navy (#1e3a5f), sage (#2d5a3d), text (#2a1f18)
-- **Yazı tipleri:** Playfair Display (başlıklar) + Open Sans (gövde)
-- **Animasyonlar:** fadeUp, float, shimmer, paintDrift, sparkle, card-hover, cat-circle
-- **Logo:** mix-blend-mode: multiply ile navbar'da, invert + glow ile welcome ekranında
+- **Site paleti:** krem zemin `#f5f0e8`, metin `#2a1f18`, terra `#b5734a`, şarap `#8b2635`
+- **Panel paleti:** `lib/adminTheme.ts` içinde; beyaz zemin, açık gri sol menü
+- **Yazı tipleri:** Playfair Display (başlıklar), Open Sans (gövde)
+- **Yazım kuralı:** metinlerde em dash (—) kullanılmaz, virgül veya kısa tire tercih edilir
 
 ---
 
-## WordPress İçerik Aktarımı
+## Bilinmesi gereken tuhaflıklar
 
-Eski site `loveinartsz.com` (Turhost/cPanel) üzerindeydi.  
-509 yazı phpMyAdmin'den CSV olarak alınıp `import_posts.mjs` scriptiyle Supabase'e aktarıldı.  
-52 farklı yazar var, her yazının `author_name` alanı dolduruldu.
+Bunlar geçmişte zaman kaybettiren, tekrar karşılaşılabilecek konular:
+
+1. **Eski görseller kırık.** `loveinartsz.com` kapalı. 510 yazının 445'inin
+   `cover_url`'ü oraya işaret ediyor. `lib/coverUrl.ts` bu durumda kategoriye
+   uygun bir yedek görsel döndürür. Yazı içindeki kırık görselleri de
+   `lib/cleanContent.ts` temizler.
+
+2. **Vercel cron ve Hobby planı.** `vercel.json`'a günde birden fazla çalışan bir
+   cron yazarsan Vercel **hiçbir deployment üretmez** ve sebebini sadece
+   "Create Deployment" penceresinde gösterir. Deploy olmuyorsa önce buraya bak.
+
+3. **favicon.ico RGBA olmalı.** RGB kaydedilirse Next.js derlemesi
+   "The PNG is not in RGBA format" hatasıyla düşer.
+
+4. **Kategori eklemek.** Kategoriler `categories` tablosunda ve `posts.category`
+   yabancı anahtarla bağlı. Eskiden kodda sabit bir CHECK kısıtı vardı, kaldırıldı.
+   Panelden eklenen kategori anında kullanılabilir.
+
+5. **Düzenleme editörüne içerik yüklenmesi.** Sayfa açılırken editör henüz DOM'da
+   olmadığı için içerik `loading` bitince ayrı bir effect'te yazılır. Ayrıca boş
+   editörle kaydetmek mevcut içeriği silmesin diye koruma var.
 
 ---
 
 ## Yapılacaklar
 
-- [x] Alan adını Vercel'e bağla — thecultiva.com (apex → www yönlendirme), GoDaddy DNS: A @ 216.198.79.1, CNAME www → vercel-dns
-- [x] Yazar sayfaları (`/yazar/[ad]`)
-- [ ] Supabase Auth — admin rolü ayarla (`UPDATE profiles SET role = 'admin' WHERE email = 'zeynepkaraayel@gmail.com'`)
-- [ ] Supabase Storage `images` bucket politikaları (public read)
-- [ ] Responsive / mobil uyumluluk
-- [ ] Instagram, İletişim, Hakkında sayfaları
+- [ ] Instagram, İletişim, Hakkında sayfaları (şu an altbilgide `#` linkler)
+- [ ] AdSense publisher ID'sini `app/layout.tsx` içine yaz (şu an `ca-pub-XXXX`)
+- [ ] Kapağı olmayan 40 yazıya gerçek görsel
+- [ ] Yazar sayfalarında biyografi ve fotoğrafı göster (`authors` tablosunda alanlar hazır)
+- [ ] Testleri sosyal medyada paylaşma düğmesi
+- [ ] Mobil görünümü baştan sona gözden geçir
