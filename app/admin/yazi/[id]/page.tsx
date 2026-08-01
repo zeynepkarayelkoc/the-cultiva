@@ -76,7 +76,7 @@ export default function YaziDuzenle() {
     const editorHtml = editorRef.current?.innerHTML ?? ''
     const bos = editorHtml.replace(/<[^>]+>|&nbsp;|\s/g, '') === ''
     if (bos && contentHtml.trim() !== '') {
-      setError('İçerik boş görünüyor — kayıt iptal edildi. Sayfayı yenileyip tekrar dene.')
+      setError('İçerik boş görünüyor, kayıt iptal edildi. Sayfayı yenileyip tekrar dene.')
       return
     }
 
@@ -175,7 +175,7 @@ export default function YaziDuzenle() {
               <label style={lbl}>yazar</label>
               {authors.length > 0 ? (
                 <select value={authorName} onChange={e => setAuthorName(e.target.value)} style={inp}>
-                  <option value="">— seç —</option>
+                  <option value="">seç</option>
                   {authors.map(a => (
                     <option key={a.id} value={a.name}>{a.name}</option>
                   ))}

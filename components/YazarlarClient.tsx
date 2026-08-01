@@ -74,7 +74,7 @@ export default function YazarlarClient({
 
   const remove = async (a: Author) => {
     const used = counts[a.name] ?? 0
-    if (used > 0) { setErr(`"${a.name}" silinemez — ${used} yazısı var.`); return }
+    if (used > 0) { setErr(`"${a.name}" silinemez, ${used} yazısı var.`); return }
     if (!confirm(`"${a.name}" silinsin mi?`)) return
     await supabase.from('authors').delete().eq('id', a.id)
     setMsg(`"${a.name}" silindi.`)
@@ -126,7 +126,7 @@ export default function YazarlarClient({
                         <span style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</span>
                       </div>
                       <div style={{ padding: '11px 12px', color: T.muted, fontSize: '0.82rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {a.email ?? '—'}
+                        {a.email ?? '-'}
                       </div>
                       <div style={{ padding: '11px 12px', color: T.faint, fontSize: '0.85rem' }}>{used}</div>
                       <div style={{ padding: '11px 12px', textAlign: 'right', fontSize: '0.75rem' }}>
@@ -165,7 +165,7 @@ export default function YazarlarClient({
                           <button style={btn} onClick={() => setOpen(null)}>Vazgeç</button>
                           {draft.name && draft.name !== a.name && (
                             <span style={{ fontSize: '0.75rem', color: T.amber }}>
-                              Ad değişecek — {used} yazıdaki isim de güncellenir.
+                              Ad değişecek, {used} yazıdaki isim de güncellenir.
                             </span>
                           )}
                         </div>

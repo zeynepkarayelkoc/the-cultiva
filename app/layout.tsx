@@ -4,7 +4,7 @@ import './globals.css'
 import SiteChrome from '@/components/SiteChrome'
 import { siteAyarlari } from '@/lib/siteSettings'
 
-// Google AdSense Publisher ID — AdSense hesabın onaylandıktan sonra
+// Google AdSense Publisher ID - AdSense hesabın onaylandıktan sonra
 // https://adsense.google.com → Account → Account information → Publisher ID
 const ADSENSE_PUBLISHER_ID = 'ca-pub-XXXXXXXXXXXXXXXX'  // ← buraya yaz
 
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="tr">
       <head>
-        {/* Google AdSense — publisher ID doğrulandıktan sonra aktif olur */}
+        {/* Google AdSense - publisher ID doğrulandıktan sonra aktif olur */}
         <Script
           async
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_PUBLISHER_ID}`}

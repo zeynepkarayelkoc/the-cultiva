@@ -193,7 +193,7 @@ export default async function Home() {
             fontStyle: 'italic', color: '#8b2635', fontSize: '1.1rem',
           }}>The Cultiva</span>
           <p style={{ fontSize: '0.72rem', color: 'rgba(42,31,24,0.4)' }}>
-            © 2026 The Cultiva — yaşam, sanat & seyahat
+            © 2026 The Cultiva · yaşam, sanat & seyahat
           </p>
           <div style={{ display: 'flex', gap: '1.5rem' }}>
             {['instagram', 'iletişim', 'hakkında'].map(l => (

@@ -174,7 +174,7 @@ export default function AdminPanelClient({
                     <button onClick={() => removeOne(p)} style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: T.danger, cursor: 'pointer' }}>Sil</button>
                   </span>
                 </td>
-                <td style={{ ...td, color: T.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.author_name ?? '—'}</td>
+                <td style={{ ...td, color: T.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.author_name ?? '-'}</td>
                 <td style={{ ...td, color: T.muted }}>{catName[p.category] ?? p.category}</td>
                 <td style={td}>
                   <span style={{

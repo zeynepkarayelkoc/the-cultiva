@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!, // service role key — sadece server tarafında kullan
+    process.env.SUPABASE_SERVICE_ROLE_KEY!, // service role key - sadece server tarafında kullan
   )
 
   const now = new Date().toISOString()

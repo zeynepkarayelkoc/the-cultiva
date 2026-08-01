@@ -10,7 +10,7 @@ export function cleanContent(html: string): string {
 
   // 1) loveinartsz.com görseli içeren <figure>...</figure> bloklarını sil.
   //    (?:(?!<\/?figure)[\s\S])*? kalıbı sayesinde eşleşme başka bir <figure>
-  //    etiketinin üzerinden atlayamaz — yoksa iki figür arasındaki gerçek
+  //    etiketinin üzerinden atlayamaz - yoksa iki figür arasındaki gerçek
   //    metin de silinirdi.
   out = out.replace(
     /<figure\b(?:(?!<\/?figure\b)[\s\S])*?loveinartsz\.com(?:(?!<\/?figure\b)[\s\S])*?<\/figure>/gi,

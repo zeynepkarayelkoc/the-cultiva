@@ -300,7 +300,7 @@ export default function AnasayfaYonetimi() {
             ))}
             {nonFeatured.length > 50 && (
               <div style={{ padding: '0.75rem 1.5rem', fontSize: '0.72rem', color: '#a89c8c', textAlign: 'center' }}>
-                + {nonFeatured.length - 50} yazı daha — aramayı kullan
+                + {nonFeatured.length - 50} yazı daha, aramayı kullan
               </div>
             )}
           </div>

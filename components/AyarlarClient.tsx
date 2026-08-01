@@ -53,7 +53,7 @@ export default function AyarlarClient({
     const { data } = supabase.storage.from('images').getPublicUrl(yol)
     setIkon(data.publicUrl)
     setYukleniyor(false)
-    setMsg('Görsel yüklendi — kaydetmeyi unutma.')
+    setMsg('Görsel yüklendi, kaydetmeyi unutma.')
   }
 
   const cikis = async () => {
@@ -84,7 +84,7 @@ export default function AyarlarClient({
 
         <label style={label}>Site başlığı</label>
         <input style={input} value={baslik} onChange={e => setBaslik(e.target.value)} />
-        <div style={sayac(baslik.length, 60)}>{baslik.length} / 60 karakter — uzunu Google&apos;da kesilir</div>
+        <div style={sayac(baslik.length, 60)}>{baslik.length} / 60 karakter. Uzunu Google&apos;da kesilir</div>
 
         <div style={{ height: 14 }} />
 
@@ -134,8 +134,8 @@ export default function AyarlarClient({
               <div style={{ fontSize: '0.72rem', color: T.muted }}>https://www.thecultiva.com</div>
             </div>
           </div>
-          <div style={{ color: '#6b31a8', fontSize: '1.05rem', marginBottom: 3 }}>{baslik || '—'}</div>
-          <div style={{ fontSize: '0.82rem', color: '#4a4a4a', lineHeight: 1.5 }}>{aciklama || '—'}</div>
+          <div style={{ color: '#6b31a8', fontSize: '1.05rem', marginBottom: 3 }}>{baslik || '-'}</div>
+          <div style={{ fontSize: '0.82rem', color: '#4a4a4a', lineHeight: 1.5 }}>{aciklama || '-'}</div>
         </div>
 
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 18 }}>

@@ -53,7 +53,7 @@ export default function KategorilerClient({
   const remove = async (c: Cat) => {
     const used = counts[c.slug] ?? 0
     if (used > 0) {
-      setErr(`"${c.name}" silinemez — ${used} yazı bu kategoride. Önce o yazıları başka kategoriye taşı.`)
+      setErr(`"${c.name}" silinemez, ${used} yazı bu kategoride. Önce o yazıları başka kategoriye taşı.`)
       setMsg('')
       return
     }

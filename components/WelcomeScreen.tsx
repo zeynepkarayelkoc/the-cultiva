@@ -174,7 +174,7 @@ export default function WelcomeScreen() {
         perspective: '1000px',
       }}
     >
-      {/* Tablo — 3D tilt */}
+      {/* Tablo - 3D tilt */}
       <div style={{
         position: 'absolute', inset: '-8%',
         backgroundImage: "url('https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Michelangelo_-_Creation_of_Adam_%28cropped%29.jpg/1280px-Michelangelo_-_Creation_of_Adam_%28cropped%29.jpg')",

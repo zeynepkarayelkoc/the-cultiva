@@ -295,7 +295,7 @@ export default function YeniYaziPage() {
               <label style={lbl}>yazar</label>
               {authors.length > 0 ? (
                 <select value={authorName} onChange={e => setAuthorName(e.target.value)} style={inp}>
-                  <option value="">— seç —</option>
+                  <option value="">seç</option>
                   {authors.map(a => (
                     <option key={a.id} value={a.name}>{a.name}</option>
                   ))}
@@ -324,7 +324,7 @@ export default function YeniYaziPage() {
           <details style={{ marginBottom: '1.5rem' }}>
             <summary style={{ ...lbl, cursor: 'pointer', userSelect: 'none', listStyle: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span>▸ SEO ayarları</span>
-              <span style={{ fontSize: '0.55rem', color: '#a89c8c' }}>— boş bırakırsan başlık + özet kullanılır</span>
+              <span style={{ fontSize: '0.55rem', color: '#a89c8c' }}>boş bırakırsan başlık + özet kullanılır</span>
             </summary>
             <div style={{ paddingTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div>

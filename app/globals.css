@@ -339,7 +339,7 @@ button { cursor: pointer; font-family: inherit; }
   .hero-full-arrow { display: none; }
 }
 
-/* ── HERO SLIDER (eski — yerini hero-full aldı) ── */
+/* ── HERO SLIDER (eski - yerini hero-full aldı) ── */
 .hero-slider-section {
   position: relative;
   display: grid;
@@ -369,7 +369,7 @@ button { cursor: pointer; font-family: inherit; }
   );
 }
 
-/* Sağ panel — koyu tinted overlay */
+/* Sağ panel - koyu tinted overlay */
 .hero-side-panel {
   position: absolute;
   top: 0; right: 0; bottom: 0;
@@ -669,7 +669,7 @@ button { cursor: pointer; font-family: inherit; }
   color: var(--text);
 }
 
-/* Paragraflar — aşırı boşluk yerine düzenli ritim */
+/* Paragraflar - aşırı boşluk yerine düzenli ritim */
 .post-content p {
   margin: 0 0 1.4rem;
 }
@@ -699,14 +699,14 @@ button { cursor: pointer; font-family: inherit; }
 .post-content h3 { font-size: 1.35rem; }
 .post-content h4 { font-size: 1.15rem; }
 
-/* Kalın metin (soru-cevap başlıkları) — vurguyu güçlendir */
+/* Kalın metin (soru-cevap başlıkları) - vurguyu güçlendir */
 .post-content strong,
 .post-content b {
   font-weight: 600;
   color: #1e1410;
 }
 
-/* Görseller — ortalanmış, tam genişlik, yumuşak köşe */
+/* Görseller - ortalanmış, tam genişlik, yumuşak köşe */
 .post-content img {
   display: block;
   max-width: 100%;

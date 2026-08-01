@@ -26,7 +26,7 @@ export async function siteAyarlari(): Promise<Record<AyarAnahtari, string>> {
       if (deger) sonuc[satir.key as AyarAnahtari] = deger
     }
   } catch {
-    // Veritabanına ulaşılamazsa varsayılanlarla devam et — site açık kalsın.
+    // Veritabanına ulaşılamazsa varsayılanlarla devam et - site açık kalsın.
   }
   return sonuc
 }
