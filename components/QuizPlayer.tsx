@@ -20,6 +20,7 @@ export default function QuizPlayer({ quiz, girisYapti }: { quiz: Quiz; girisYapt
   const [anahtarlar, setAnahtarlar] = useState<(string | null)[]>([])
   const [saniye, setSaniye] = useState(0)
   const [kaydedildi, setKaydedildi] = useState<'yok' | 'evet' | 'hata'>('yok')
+  const [paylasildi, setPaylasildi] = useState(false)
   const sayacRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => () => { if (sayacRef.current) clearInterval(sayacRef.current) }, [])
@@ -61,6 +62,25 @@ export default function QuizPlayer({ quiz, girisYapti }: { quiz: Quiz; girisYapt
       outcome_key: sonuc?.key ?? null,
     })
     setKaydedildi(error ? 'hata' : 'evet')
+  }
+
+  // Paylaşma: cihaz destekliyorsa sistem paylaşım penceresi, yoksa panoya kopyala
+  const paylas = async () => {
+    const adres = window.location.href
+    const baslik = bilgi
+      ? `${quiz.title} testinde ${dogru}/${sorular.length} yaptım.`
+      : `${quiz.title} testinde sonucum: ${sonuc?.title ?? ''}`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: quiz.title, text: baslik, url: adres })
+        return
+      }
+      await navigator.clipboard.writeText(`${baslik} ${adres}`)
+      setPaylasildi(true)
+      setTimeout(() => setPaylasildi(false), 2500)
+    } catch {
+      // Kullanıcı paylaşımı iptal ettiyse sessiz geç
+    }
   }
 
   const sonuc: QuizOutcome | null = bilgi
@@ -217,7 +237,7 @@ export default function QuizPlayer({ quiz, girisYapti }: { quiz: Quiz; girisYapt
       ) : null}
 
       <div style={{ fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: renk, marginBottom: '0.5rem' }}>
-        {bilgi ? 'sonucun' : 'sen bir'}
+        sonucun
       </div>
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.7rem', fontWeight: 400, marginBottom: '0.7rem' }}>
         {sonuc?.title ?? (bilgi ? `${dogru}/${sorular.length} doğru` : 'Sonuç')}
@@ -240,11 +260,14 @@ export default function QuizPlayer({ quiz, girisYapti }: { quiz: Quiz; girisYapt
       )}
 
       <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <button onClick={paylas} style={anaBtn}>
+          {paylasildi ? 'Bağlantı kopyalandı' : 'Sonucu paylaş'}
+        </button>
         <button onClick={basla} style={{ ...anaBtn, background: '#fff', color: 'var(--text)', border: '1px solid var(--border)' }}>
           Tekrar dene
         </button>
         {bilgi && (
-          <Link href="/testler/siralama" style={{ ...anaBtn, textDecoration: 'none', display: 'inline-block' }}>
+          <Link href="/testler/siralama" style={{ ...anaBtn, background: '#fff', color: 'var(--text)', border: '1px solid var(--border)', textDecoration: 'none', display: 'inline-block' }}>
             Şampiyonluk tablosu
           </Link>
         )}
@@ -255,9 +278,11 @@ export default function QuizPlayer({ quiz, girisYapti }: { quiz: Quiz; girisYapt
 
       <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: '1.2rem' }}>
         {!girisYapti
-          ? <>Puanın kaydedilmedi. <Link href="/giris" style={{ color: 'var(--terra)' }}>Giriş yap</Link>, sıralamaya gir.</>
-          : kaydedildi === 'evet' ? 'Puanın profiline işlendi.'
-          : kaydedildi === 'hata' ? 'Puan kaydedilemedi.'
+          ? bilgi
+            ? <>Puanın kaydedilmedi. <Link href="/giris" style={{ color: 'var(--terra)' }}>Giriş yap</Link>, sıralamaya gir.</>
+            : <>Sonucun kaydedilmedi. <Link href="/giris" style={{ color: 'var(--terra)' }}>Giriş yap</Link>, profilinde biriksin.</>
+          : kaydedildi === 'evet' ? (bilgi ? 'Puanın profiline işlendi.' : 'Sonucun profiline işlendi.')
+          : kaydedildi === 'hata' ? 'Kaydedilemedi.'
           : 'Kaydediliyor…'}
       </div>
     </div>
