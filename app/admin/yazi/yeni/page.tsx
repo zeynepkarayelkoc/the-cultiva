@@ -2,9 +2,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import Link from 'next/link'
-
-const categories = ['yasam', 'seyahat', 'sanat', 'rehber', 'kitap', 'sinema']
+import AdminShell from '@/components/AdminShell'
 
 const toSlug = (s: string) =>
   s.toLowerCase().trim()
@@ -36,7 +34,8 @@ export default function YeniYaziPage() {
   const [aiPanel, setAiPanel]         = useState(false)
   const [aiResult, setAiResult]       = useState('')
   const [authorName, setAuthorName]   = useState('')
-  const [authors, setAuthors]         = useState<{ id: string; full_name: string | null }[]>([])
+  const [authors, setAuthors]         = useState<{ id: string; name: string }[]>([])
+  const [categories, setCategories]   = useState<{ slug: string; name: string }[]>([])
 
   const editorRef    = useRef<HTMLDivElement>(null)
   const coverFileRef = useRef<HTMLInputElement>(null)
@@ -49,10 +48,16 @@ export default function YeniYaziPage() {
     setSlug(prev => (prev === toSlug(title) || prev === '') ? toSlug(v) : prev)
   }
 
-  // Yazarları yükle
+  // Yazarları ve kategorileri yükle
   useEffect(() => {
-    supabase.from('profiles').select('id, full_name').then(({ data }) => {
+    supabase.from('authors').select('id, name').order('name').then(({ data }) => {
       if (data) setAuthors(data)
+    })
+    supabase.from('categories').select('slug, name').order('sort_order').then(({ data }) => {
+      if (data) {
+        setCategories(data)
+        setCategory(prev => prev || data[0]?.slug || '')
+      }
     })
   }, [])
 
@@ -188,25 +193,16 @@ export default function YeniYaziPage() {
     { label: '🖼',  title: 'Görsel URL',  action: () => { const u = prompt('Görsel URL:'); if (u) exec('insertImage', u) }, style: {} },
     { label: '📁', title: 'Görsel Yükle',action: () => imgFileRef.current?.click(),      style: {} },
     { label: '|',  title: 'sep',         action: () => null,                             style: {} },
-    { label: '✕',  title: 'Temizle',     action: () => exec('removeFormat'),            style: { color:'#c97060' } as React.CSSProperties },
+    { label: '✕',  title: 'Temizle',     action: () => exec('removeFormat'),            style: { color:'#b03030' } as React.CSSProperties },
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0f0a07', color: '#f5e8d0' }}>
-
-      {/* Üst bar */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 100, padding: '0 2rem', height: 58,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: '#1a100a', borderBottom: '1px solid rgba(245,232,208,0.08)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <Link href="/admin" style={{ color: '#b5734a', fontSize: '0.8rem' }}>← panel</Link>
-          <span style={{ fontSize: '0.65rem', letterSpacing: '0.2em', color: 'rgba(245,232,208,0.3)', textTransform: 'uppercase' }}>yeni yazı</span>
-        </div>
-        <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+    <AdminShell
+      title="Yeni yazı"
+      action={
+        <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Auto-save durumu */}
-          <span style={{ fontSize: '0.65rem', color: 'rgba(245,232,208,0.35)', minWidth: 120, textAlign: 'right' }}>
+          <span style={{ fontSize: '0.65rem', color: '#a89c8c', minWidth: 120, textAlign: 'right' }}>
             {saveStatus === 'saving' ? '💾 kaydediliyor…' : saveStatus === 'saved' ? `✓ ${lastSaved} kaydedildi` : ''}
           </span>
 
@@ -218,11 +214,11 @@ export default function YeniYaziPage() {
             {aiPanel && (
               <div style={{
                 position: 'absolute', top: '110%', right: 0, zIndex: 200,
-                background: '#1a100a', border: '1px solid rgba(245,232,208,0.15)',
+                background: '#faf8f5', border: '1px solid #e4ddd1',
                 borderRadius: 12, padding: '0.75rem', width: 220,
                 boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
               }}>
-                <div style={{ fontSize: '0.6rem', letterSpacing: '0.2em', color: 'rgba(245,232,208,0.3)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>AI Yardımı</div>
+                <div style={{ fontSize: '0.6rem', letterSpacing: '0.2em', color: '#a89c8c', marginBottom: '0.5rem', textTransform: 'uppercase' }}>AI Yardımı</div>
                 {[
                   { label: '✏️ Metni düzelt', action: () => aiAssist('fix'), desc: 'Yazım + dilbilgisi' },
                   { label: '📝 Özet yaz', action: () => aiAssist('excerpt'), desc: 'Kart özeti oluştur' },
@@ -230,19 +226,19 @@ export default function YeniYaziPage() {
                 ].map(({ label, action, desc }) => (
                   <button key={label} type="button" onClick={action} disabled={aiLoading} style={{
                     display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 0.75rem',
-                    background: 'transparent', border: 'none', color: '#f5e8d0', cursor: 'pointer',
+                    background: 'transparent', border: 'none', color: '#2c2419', cursor: 'pointer',
                     borderRadius: 8, marginBottom: 2, fontSize: '0.8rem',
                     transition: 'background 0.15s',
                   }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(245,232,208,0.08)')}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#fbf9f6')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
                     {label}
-                    <div style={{ fontSize: '0.6rem', color: 'rgba(245,232,208,0.35)', marginTop: 1 }}>{desc}</div>
+                    <div style={{ fontSize: '0.6rem', color: '#a89c8c', marginTop: 1 }}>{desc}</div>
                   </button>
                 ))}
                 {aiResult && (
-                  <div style={{ marginTop: '0.75rem', padding: '0.6rem', background: 'rgba(245,232,208,0.06)', borderRadius: 8, fontSize: '0.78rem', lineHeight: 1.6, color: 'rgba(245,232,208,0.8)', whiteSpace: 'pre-wrap' }}>
+                  <div style={{ marginTop: '0.75rem', padding: '0.6rem', background: '#fbf9f6', borderRadius: 8, fontSize: '0.78rem', lineHeight: 1.6, color: '#2c2419', whiteSpace: 'pre-wrap' }}>
                     {aiResult}
                   </div>
                 )}
@@ -251,24 +247,25 @@ export default function YeniYaziPage() {
           </div>
 
           {uploading && <span style={{ fontSize: '0.7rem', color: '#b5734a' }}>⏳ yükleniyor</span>}
-          <button type="button" onClick={() => setPreview(p => !p)} style={{ ...topBtn, border: '1px solid rgba(245,232,208,0.2)' }}>
+          <button type="button" onClick={() => setPreview(p => !p)} style={{ ...topBtn, border: '1px solid #e4ddd1', color: '#2c2419' }}>
             {preview ? 'düzenle' : 'önizle'}
           </button>
           <button type="button" onClick={() => setPublished(p => !p)} style={{
             ...topBtn,
-            background: published ? '#2d5a3d' : 'rgba(245,232,208,0.06)',
-            border: `1px solid ${published ? '#2d5a3d' : 'rgba(245,232,208,0.15)'}`,
+            color: published ? '#fff' : '#2c2419',
+            background: published ? '#4f7a52' : '#fff',
+            border: `1px solid ${published ? '#4f7a52' : '#e4ddd1'}`,
           }}>
             {published ? '● yayında' : '○ taslak'}
           </button>
-          <button form="post-form" type="submit" disabled={loading} style={{ ...topBtn, background: '#8b2635', border: 'none', fontWeight: 600, opacity: loading ? 0.7 : 1 }}>
+          <button form="post-form" type="submit" disabled={loading} style={{ ...topBtn, background: '#b5734a', color: '#fff', border: 'none', opacity: loading ? 0.7 : 1 }}>
             {loading ? '…' : 'kaydet'}
           </button>
         </div>
-      </div>
-
+      }
+    >
       <form id="post-form" onSubmit={handle}>
-        <div style={{ maxWidth: 860, margin: '0 auto', padding: '2.5rem 2rem 6rem' }}>
+        <div style={{ maxWidth: 860 }}>
 
           {/* Başlık */}
           <textarea
@@ -277,8 +274,8 @@ export default function YeniYaziPage() {
             required rows={2}
             style={{
               width: '100%', background: 'transparent', border: 'none',
-              borderBottom: '1px solid rgba(245,232,208,0.1)',
-              color: '#f5e8d0', outline: 'none', resize: 'none',
+              borderBottom: '1px solid #e4ddd1',
+              color: '#2c2419', outline: 'none', resize: 'none',
               fontFamily: "'Playfair Display',serif", fontStyle: 'italic',
               fontSize: 'clamp(1.8rem,4vw,2.8rem)', lineHeight: 1.2,
               paddingBottom: '1rem', marginBottom: '1.5rem',
@@ -291,7 +288,7 @@ export default function YeniYaziPage() {
             <div>
               <label style={lbl}>kategori</label>
               <select value={category} onChange={e => setCategory(e.target.value)} style={inp}>
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                {categories.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}
               </select>
             </div>
             <div>
@@ -300,7 +297,7 @@ export default function YeniYaziPage() {
                 <select value={authorName} onChange={e => setAuthorName(e.target.value)} style={inp}>
                   <option value="">— seç —</option>
                   {authors.map(a => (
-                    <option key={a.id} value={a.full_name ?? ''}>{a.full_name ?? a.id}</option>
+                    <option key={a.id} value={a.name}>{a.name}</option>
                   ))}
                   <option value="__custom">başka yazar…</option>
                 </select>
@@ -327,30 +324,30 @@ export default function YeniYaziPage() {
           <details style={{ marginBottom: '1.5rem' }}>
             <summary style={{ ...lbl, cursor: 'pointer', userSelect: 'none', listStyle: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span>▸ SEO ayarları</span>
-              <span style={{ fontSize: '0.55rem', color: 'rgba(245,232,208,0.2)' }}>— boş bırakırsan başlık + özet kullanılır</span>
+              <span style={{ fontSize: '0.55rem', color: '#a89c8c' }}>— boş bırakırsan başlık + özet kullanılır</span>
             </summary>
             <div style={{ paddingTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div>
                 <label style={lbl}>meta başlık (Google'da görünen)</label>
                 <input value={metaTitle} onChange={e => setMetaTitle(e.target.value)} placeholder={title || 'Meta başlık...'} maxLength={60} style={inp} />
-                <div style={{ fontSize: '0.58rem', color: 'rgba(245,232,208,0.25)', marginTop: 3 }}>{metaTitle.length}/60</div>
+                <div style={{ fontSize: '0.58rem', color: '#a89c8c', marginTop: 3 }}>{metaTitle.length}/60</div>
               </div>
               <div>
                 <label style={lbl}>meta açıklama</label>
                 <textarea value={metaDesc} onChange={e => setMetaDesc(e.target.value)} placeholder={excerpt || 'Meta açıklama...'} maxLength={160} rows={2} style={{ ...inp, resize: 'vertical' }} />
-                <div style={{ fontSize: '0.58rem', color: 'rgba(245,232,208,0.25)', marginTop: 3 }}>{metaDesc.length}/160</div>
+                <div style={{ fontSize: '0.58rem', color: '#a89c8c', marginTop: 3 }}>{metaDesc.length}/160</div>
               </div>
             </div>
           </details>
 
           {/* ── YAYIN ZAMANLAMA ── */}
-          <div style={{ marginBottom: '1.5rem', padding: '0.9rem 1rem', background: 'rgba(245,232,208,0.04)', borderRadius: 10, border: '1px solid rgba(245,232,208,0.08)' }}>
+          <div style={{ marginBottom: '1.5rem', padding: '0.9rem 1rem', background: '#fbf9f6', borderRadius: 10, border: '1px solid #fbf9f6' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <label style={{ ...lbl, marginBottom: 0 }}>⏰ yayın zamanlama</label>
               <button type="button" onClick={() => setShowSchedule(s => !s)} style={{
                 fontSize: '0.65rem', padding: '0.25rem 0.7rem', borderRadius: 50,
-                border: '1px solid rgba(245,232,208,0.2)', background: 'transparent',
-                color: 'rgba(245,232,208,0.5)', cursor: 'pointer',
+                border: '1px solid #a89c8c', background: 'transparent',
+                color: '#7d7264', cursor: 'pointer',
               }}>
                 {showSchedule ? 'kapat' : 'zamanla'}
               </button>
@@ -365,7 +362,7 @@ export default function YeniYaziPage() {
                   style={{ ...inp, flex: 1, colorScheme: 'dark' }}
                 />
                 {scheduledAt && (
-                  <button type="button" onClick={() => setScheduledAt('')} style={{ ...smallBtn, background: 'transparent', border: '1px solid rgba(245,232,208,0.15)', color: 'rgba(245,232,208,0.4)' }}>
+                  <button type="button" onClick={() => setScheduledAt('')} style={{ ...smallBtn, background: 'transparent', border: '1px solid #e4ddd1', color: '#7d7264' }}>
                     iptal
                   </button>
                 )}
@@ -381,17 +378,17 @@ export default function YeniYaziPage() {
           {/* ── COVER ── */}
           <div style={{ marginBottom: '2rem' }}>
             <label style={lbl}>kapak görseli</label>
-            <div style={{ border: '1px solid rgba(245,232,208,0.12)', borderRadius: 12, overflow: 'hidden', background: 'rgba(245,232,208,0.03)' }}>
+            <div style={{ border: '1px solid #e4ddd1', borderRadius: 12, overflow: 'hidden', background: '#fbf9f6' }}>
               {coverUrl && (
                 <div style={{ position: 'relative' }}>
                   <img src={coverUrl} alt="cover" style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block' }} />
-                  <button type="button" onClick={() => setCoverUrl('')} style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.6)', border: 'none', color: '#f5e8d0', borderRadius: 6, padding: '0.3rem 0.6rem', fontSize: '0.72rem', cursor: 'pointer' }}>✕</button>
+                  <button type="button" onClick={() => setCoverUrl('')} style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.6)', border: 'none', color: '#2c2419', borderRadius: 6, padding: '0.3rem 0.6rem', fontSize: '0.72rem', cursor: 'pointer' }}>✕</button>
                 </div>
               )}
               <div style={{ padding: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
                 <button type="button" onClick={() => coverFileRef.current?.click()} style={{ ...smallBtn, background: '#b5734a' }}>📁 bilgisayardan yükle</button>
                 <input ref={coverFileRef} type="file" accept="image/*" onChange={handleCoverUpload} style={{ display: 'none' }} />
-                <span style={{ fontSize: '0.65rem', color: 'rgba(245,232,208,0.3)' }}>veya</span>
+                <span style={{ fontSize: '0.65rem', color: '#a89c8c' }}>veya</span>
                 <input value={coverUrl} onChange={e => setCoverUrl(e.target.value)} placeholder="https://… görsel URL" style={{ ...inp, flex: 1, minWidth: 200 }} />
               </div>
             </div>
@@ -401,19 +398,19 @@ export default function YeniYaziPage() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
               <label style={lbl}>içerik</label>
-              {error && <span style={{ fontSize: '0.75rem', color: '#c97060' }}>{error}</span>}
+              {error && <span style={{ fontSize: '0.75rem', color: '#b03030' }}>{error}</span>}
             </div>
 
             {!preview ? (
               <>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', padding: '0.4rem 0.6rem', background: 'rgba(245,232,208,0.05)', border: '1px solid rgba(245,232,208,0.1)', borderBottom: 'none', borderRadius: '10px 10px 0 0' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', padding: '0.4rem 0.6rem', background: '#fbf9f6', border: '1px solid #e4ddd1', borderBottom: 'none', borderRadius: '10px 10px 0 0' }}>
                   {toolbarBtns.map((btn, i) =>
                     btn.label === '|' ? (
-                      <div key={i} style={{ width: 1, background: 'rgba(245,232,208,0.12)', margin: '2px 4px', alignSelf: 'stretch' }} />
+                      <div key={i} style={{ width: 1, background: '#e4ddd1', margin: '2px 4px', alignSelf: 'stretch' }} />
                     ) : (
                       <button key={i} type="button" title={btn.title}
                         onMouseDown={e => { e.preventDefault(); btn.action() }}
-                        style={{ background: 'transparent', border: 'none', color: '#f5e8d0', cursor: 'pointer', padding: '0.3rem 0.55rem', borderRadius: 6, minWidth: 28, fontSize: btn.label.length > 1 ? '0.65rem' : '0.85rem', ...btn.style }}
+                        style={{ background: 'transparent', border: 'none', color: '#2c2419', cursor: 'pointer', padding: '0.3rem 0.55rem', borderRadius: 6, minWidth: 28, fontSize: btn.label.length > 1 ? '0.65rem' : '0.85rem', ...btn.style }}
                       >{btn.label}</button>
                     )
                   )}
@@ -425,13 +422,13 @@ export default function YeniYaziPage() {
                   suppressContentEditableWarning
                   onInput={() => setContentHtml(editorRef.current?.innerHTML ?? '')}
                   data-placeholder="Yazınızı buraya yazın…"
-                  style={{ minHeight: 460, padding: '1.4rem 1.2rem', background: 'rgba(245,232,208,0.03)', border: '1px solid rgba(245,232,208,0.1)', borderRadius: '0 0 10px 10px', color: '#f5e8d0', outline: 'none', fontSize: '1rem', lineHeight: 1.85, fontFamily: "'Open Sans',sans-serif" }}
+                  style={{ minHeight: 460, padding: '1.4rem 1.2rem', background: '#fbf9f6', border: '1px solid #e4ddd1', borderRadius: '0 0 10px 10px', color: '#2c2419', outline: 'none', fontSize: '1rem', lineHeight: 1.85, fontFamily: "'Open Sans',sans-serif" }}
                 />
                 <style>{`
-                  [contenteditable]:empty:before{content:attr(data-placeholder);color:rgba(245,232,208,0.2);pointer-events:none}
+                  [contenteditable]:empty:before{content:attr(data-placeholder);color:#a89c8c;pointer-events:none}
                   [contenteditable] h2{font-family:'Playfair Display',serif;font-size:1.6rem;margin:1.2rem 0 0.5rem}
-                  [contenteditable] h3{font-family:'Playfair Display',serif;font-size:1.2rem;margin:1rem 0 0.4rem;color:#e8d0b0}
-                  [contenteditable] blockquote{border-left:3px solid #b5734a;padding-left:1rem;margin:1rem 0;color:rgba(245,232,208,0.7);font-style:italic}
+                  [contenteditable] h3{font-family:'Playfair Display',serif;font-size:1.2rem;margin:1rem 0 0.4rem;color:#8b5e3c}
+                  [contenteditable] blockquote{border-left:3px solid #b5734a;padding-left:1rem;margin:1rem 0;color:#2c2419;font-style:italic}
                   [contenteditable] ul,[contenteditable] ol{padding-left:1.5rem;margin:0.5rem 0}
                   [contenteditable] a{color:#b5734a;text-decoration:underline}
                   [contenteditable] img{max-width:100%;border-radius:8px;margin:0.75rem 0;display:block}
@@ -439,7 +436,7 @@ export default function YeniYaziPage() {
                 `}</style>
               </>
             ) : (
-              <div style={{ minHeight: 420, padding: '2rem', background: '#f5f0e8', color: '#2a1f18', borderRadius: 10 }}>
+              <div style={{ minHeight: 420, padding: '2rem', background: '#f5f0e8', color: '#ffffff', borderRadius: 10 }}>
                 {coverUrl && <img src={coverUrl} alt="" style={{ width: '100%', height: 300, objectFit: 'cover', borderRadius: 10, marginBottom: '2rem' }} />}
                 <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: '2rem', marginBottom: '1rem' }}>{title || 'Başlık yok'}</h1>
                 <div dangerouslySetInnerHTML={{ __html: contentHtml || '<p style="color:#999">İçerik yok</p>' }} />
@@ -449,11 +446,11 @@ export default function YeniYaziPage() {
 
         </div>
       </form>
-    </div>
+    </AdminShell>
   )
 }
 
-const topBtn: React.CSSProperties = { fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#f5e8d0', padding: '0.45rem 1rem', borderRadius: 50, background: 'transparent', cursor: 'pointer' }
-const lbl: React.CSSProperties    = { display: 'block', fontSize: '0.58rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(245,232,208,0.3)', marginBottom: '0.35rem' }
-const inp: React.CSSProperties    = { width: '100%', padding: '0.55rem 0.8rem', border: '1px solid rgba(245,232,208,0.12)', borderRadius: 8, background: 'rgba(245,232,208,0.05)', color: '#f5e8d0', outline: 'none', fontFamily: 'inherit', fontSize: '0.84rem' }
-const smallBtn: React.CSSProperties = { fontSize: '0.72rem', padding: '0.45rem 0.9rem', borderRadius: 8, border: 'none', color: '#f5e8d0', cursor: 'pointer', whiteSpace: 'nowrap' }
+const topBtn: React.CSSProperties = { fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#2c2419', padding: '0.45rem 1rem', borderRadius: 50, background: 'transparent', cursor: 'pointer' }
+const lbl: React.CSSProperties    = { display: 'block', fontSize: '0.58rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#a89c8c', marginBottom: '0.35rem' }
+const inp: React.CSSProperties    = { width: '100%', padding: '0.55rem 0.8rem', border: '1px solid #e4ddd1', borderRadius: 8, background: '#fbf9f6', color: '#2c2419', outline: 'none', fontFamily: 'inherit', fontSize: '0.84rem' }
+const smallBtn: React.CSSProperties = { fontSize: '0.72rem', padding: '0.45rem 0.9rem', borderRadius: 8, border: 'none', color: '#2c2419', cursor: 'pointer', whiteSpace: 'nowrap' }

@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import AdminShell from '@/components/AdminShell'
 
 type Post = {
   id: string
@@ -24,7 +25,7 @@ const catLabel: Record<string, string> = {
 }
 const catColor: Record<string, string> = {
   yasam: '#8b2635', seyahat: '#1e3a5f', sanat: '#5c3460',
-  sinema: '#7a3b5c', rehber: '#2d5a3d', kitap: '#7a4f1a',
+  sinema: '#7a3b5c', rehber: '#4f7a52', kitap: '#7a4f1a',
 }
 
 export default function AnasayfaYonetimi() {
@@ -108,42 +109,30 @@ export default function AnasayfaYonetimi() {
     .filter(p => search ? p.title.toLowerCase().includes(search.toLowerCase()) : true)
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#1a110a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f5e8d0', fontFamily: "'Playfair Display', serif", fontSize: '1.2rem' }}>
-      yükleniyor…
-    </div>
+    <AdminShell title="Ana sayfa ayarları">
+      <div style={{ color: '#a89c8c', fontSize: '0.85rem' }}>yükleniyor…</div>
+    </AdminShell>
   )
 
   const S = {
-    page: { minHeight: '100vh', background: '#1a110a', color: '#f5e8d0' } as React.CSSProperties,
-    nav: { padding: '0 2.5rem', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(245,232,208,0.1)', background: '#120c06' } as React.CSSProperties,
-    logo: { fontFamily: "'Playfair Display', serif", fontStyle: 'italic', color: '#b5734a' } as React.CSSProperties,
-    wrap: { maxWidth: 1000, margin: '0 auto', padding: '3rem 2.5rem' } as React.CSSProperties,
-    card: { background: 'rgba(245,232,208,0.04)', borderRadius: 14, border: '1px solid rgba(245,232,208,0.08)', marginBottom: '2.5rem' } as React.CSSProperties,
-    cardHead: { padding: '1.2rem 1.5rem', borderBottom: '1px solid rgba(245,232,208,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' } as React.CSSProperties,
+    wrap: { maxWidth: 1000 } as React.CSSProperties,
+    card: { background: '#ffffff', borderRadius: 12, border: '1px solid #e4ddd1', marginBottom: '2rem' } as React.CSSProperties,
+    cardHead: { padding: '1.1rem 1.4rem', borderBottom: '1px solid #efe9df', display: 'flex', alignItems: 'center', justifyContent: 'space-between' } as React.CSSProperties,
   }
 
   return (
-    <div style={S.page}>
-      {/* Nav */}
-      <div style={S.nav}>
-        <span style={S.logo}>The Cultiva · Admin</span>
-        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-          <Link href="/admin" style={{ fontSize: '0.72rem', color: 'rgba(245,232,208,0.5)' }}>← panel</Link>
-          <Link href="/" target="_blank" style={{ fontSize: '0.72rem', color: 'rgba(245,232,208,0.5)' }}>siteyi gör ↗</Link>
-        </div>
-      </div>
-
+    <AdminShell
+      title="Ana sayfa ayarları"
+      action={<Link href="/" target="_blank" style={{ fontSize: '0.78rem', color: '#7d7264' }}>siteyi gör ↗</Link>}
+    >
       <div style={S.wrap}>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.8rem', marginBottom: '2rem' }}>
-          Ana Sayfa Yönetimi
-        </h1>
 
         {/* ── SLIDER HIZ AYARI ── */}
         <div style={{ ...S.card, marginBottom: '1.5rem' }}>
           <div style={S.cardHead}>
             <div>
               <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>Slider Geçiş Süresi</div>
-              <div style={{ fontSize: '0.7rem', color: 'rgba(245,232,208,0.4)', marginTop: 2 }}>
+              <div style={{ fontSize: '0.7rem', color: '#7d7264', marginTop: 2 }}>
                 Her yazının kaç saniye görüneceği
               </div>
             </div>
@@ -155,9 +144,9 @@ export default function AnasayfaYonetimi() {
                 onClick={() => setSliderInterval(s)}
                 style={{
                   width: 44, height: 44, borderRadius: 10,
-                  border: sliderInterval === s ? '1.5px solid #b5734a' : '1px solid rgba(245,232,208,0.15)',
+                  border: sliderInterval === s ? '1.5px solid #b5734a' : '1px solid #e4ddd1',
                   background: sliderInterval === s ? 'rgba(181,115,74,0.2)' : 'transparent',
-                  color: sliderInterval === s ? '#b5734a' : 'rgba(245,232,208,0.5)',
+                  color: sliderInterval === s ? '#b5734a' : '#7d7264',
                   fontSize: '0.8rem', fontWeight: sliderInterval === s ? 700 : 400, cursor: 'pointer',
                   transition: 'all 0.2s',
                 }}
@@ -170,7 +159,7 @@ export default function AnasayfaYonetimi() {
               disabled={savingInterval}
               style={{
                 marginLeft: 'auto', padding: '0.4rem 1.2rem', borderRadius: 50,
-                background: '#b5734a', color: '#f5e8d0',
+                background: '#b5734a', color: '#2c2419',
                 border: 'none', fontSize: '0.72rem', letterSpacing: '0.1em',
                 cursor: 'pointer', opacity: savingInterval ? 0.6 : 1,
               }}
@@ -185,7 +174,7 @@ export default function AnasayfaYonetimi() {
           <div style={S.cardHead}>
             <div>
               <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>Slider Yazıları</div>
-              <div style={{ fontSize: '0.7rem', color: 'rgba(245,232,208,0.4)', marginTop: 2 }}>
+              <div style={{ fontSize: '0.7rem', color: '#7d7264', marginTop: 2 }}>
                 Sırayla gösterilir · İlk 5 yazı ana sayfada slider'a girer
               </div>
             </div>
@@ -198,7 +187,7 @@ export default function AnasayfaYonetimi() {
           </div>
 
           {featured.length === 0 ? (
-            <div style={{ padding: '2.5rem', textAlign: 'center', color: 'rgba(245,232,208,0.3)', fontSize: '0.85rem' }}>
+            <div style={{ padding: '2.5rem', textAlign: 'center', color: '#a89c8c', fontSize: '0.85rem' }}>
               Henüz öne çıkan yazı yok. Aşağıdan yazı seç.
             </div>
           ) : (
@@ -207,15 +196,15 @@ export default function AnasayfaYonetimi() {
                 <div key={post.id} style={{
                   display: 'flex', alignItems: 'center', gap: '1rem',
                   padding: '0.9rem 1.5rem',
-                  borderBottom: i < featured.length - 1 ? '1px solid rgba(245,232,208,0.06)' : 'none',
-                  background: saving === post.id ? 'rgba(245,232,208,0.03)' : 'transparent',
+                  borderBottom: i < featured.length - 1 ? '1px solid #fbf9f6' : 'none',
+                  background: saving === post.id ? '#fbf9f6' : 'transparent',
                   transition: 'background 0.2s',
                 }}>
                   {/* Sıra no */}
                   <div style={{
                     width: 28, height: 28, borderRadius: '50%',
-                    background: i < 5 ? 'rgba(181,115,74,0.25)' : 'rgba(245,232,208,0.08)',
-                    color: i < 5 ? '#b5734a' : 'rgba(245,232,208,0.4)',
+                    background: i < 5 ? 'rgba(181,115,74,0.25)' : '#fbf9f6',
+                    color: i < 5 ? '#b5734a' : '#7d7264',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: '0.72rem', fontWeight: 700, flexShrink: 0,
                   }}>
@@ -235,14 +224,14 @@ export default function AnasayfaYonetimi() {
                   {/* Sıra butonları */}
                   <div style={{ display: 'flex', gap: 4 }}>
                     <button onClick={() => moveUp(i)} disabled={i === 0 || saving !== null} style={{
-                      width: 28, height: 28, border: '1px solid rgba(245,232,208,0.15)',
-                      background: 'transparent', color: 'rgba(245,232,208,0.5)',
+                      width: 28, height: 28, border: '1px solid #e4ddd1',
+                      background: 'transparent', color: '#7d7264',
                       borderRadius: 6, fontSize: '0.8rem', cursor: i === 0 ? 'not-allowed' : 'pointer',
                       opacity: i === 0 ? 0.3 : 1,
                     }}>↑</button>
                     <button onClick={() => moveDown(i)} disabled={i === featured.length - 1 || saving !== null} style={{
-                      width: 28, height: 28, border: '1px solid rgba(245,232,208,0.15)',
-                      background: 'transparent', color: 'rgba(245,232,208,0.5)',
+                      width: 28, height: 28, border: '1px solid #e4ddd1',
+                      background: 'transparent', color: '#7d7264',
                       borderRadius: 6, fontSize: '0.8rem', cursor: i === featured.length - 1 ? 'not-allowed' : 'pointer',
                       opacity: i === featured.length - 1 ? 0.3 : 1,
                     }}>↓</button>
@@ -269,15 +258,15 @@ export default function AnasayfaYonetimi() {
           <div style={S.cardHead}>
             <div>
               <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>Tüm Yayınlanan Yazılar</div>
-              <div style={{ fontSize: '0.7rem', color: 'rgba(245,232,208,0.4)', marginTop: 2 }}>Slider'a eklemek için &quot;+ öne çıkar&quot;a bas</div>
+              <div style={{ fontSize: '0.7rem', color: '#7d7264', marginTop: 2 }}>Slider'a eklemek için &quot;+ öne çıkar&quot;a bas</div>
             </div>
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="yazı ara…"
               style={{
-                background: 'rgba(245,232,208,0.08)', border: '1px solid rgba(245,232,208,0.12)',
-                borderRadius: 8, padding: '0.4rem 0.9rem', color: '#f5e8d0',
+                background: '#fbf9f6', border: '1px solid #e4ddd1',
+                borderRadius: 8, padding: '0.4rem 0.9rem', color: '#2c2419',
                 fontSize: '0.78rem', outline: 'none', width: 180,
               }}
             />
@@ -287,7 +276,7 @@ export default function AnasayfaYonetimi() {
               <div key={post.id} style={{
                 display: 'flex', alignItems: 'center', gap: '1rem',
                 padding: '0.75rem 1.5rem',
-                borderBottom: i < nonFeatured.slice(0, 50).length - 1 ? '1px solid rgba(245,232,208,0.05)' : 'none',
+                borderBottom: i < nonFeatured.slice(0, 50).length - 1 ? '1px solid #fbf9f6' : 'none',
               }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -299,9 +288,9 @@ export default function AnasayfaYonetimi() {
                 </div>
                 <button onClick={() => toggleFeatured(post)} disabled={saving !== null} style={{
                   padding: '0.28rem 0.85rem', borderRadius: 50,
-                  border: '1px solid rgba(245,232,208,0.15)',
+                  border: '1px solid #e4ddd1',
                   background: 'transparent',
-                  color: 'rgba(245,232,208,0.55)', fontSize: '0.62rem',
+                  color: '#2c2419', fontSize: '0.62rem',
                   letterSpacing: '0.08em', cursor: 'pointer', whiteSpace: 'nowrap',
                   transition: 'all 0.2s',
                 }}>
@@ -310,13 +299,13 @@ export default function AnasayfaYonetimi() {
               </div>
             ))}
             {nonFeatured.length > 50 && (
-              <div style={{ padding: '0.75rem 1.5rem', fontSize: '0.72rem', color: 'rgba(245,232,208,0.3)', textAlign: 'center' }}>
+              <div style={{ padding: '0.75rem 1.5rem', fontSize: '0.72rem', color: '#a89c8c', textAlign: 'center' }}>
                 + {nonFeatured.length - 50} yazı daha — aramayı kullan
               </div>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </AdminShell>
   )
 }
