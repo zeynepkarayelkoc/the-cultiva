@@ -3,7 +3,8 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import AdminShell from '@/components/AdminShell'
-import { dosyaKontrol, MAKS_MB } from '@/lib/upload'
+import RichEditor from '@/components/RichEditor'
+import { dosyaKontrol } from '@/lib/upload'
 
 const toSlug = (s: string) =>
   s.toLowerCase().trim()
@@ -40,7 +41,6 @@ export default function YeniYaziPage() {
 
   const editorRef    = useRef<HTMLDivElement>(null)
   const coverFileRef = useRef<HTMLInputElement>(null)
-  const imgFileRef   = useRef<HTMLInputElement>(null)
   const router       = useRouter()
   const supabase     = createClient()
 
@@ -123,11 +123,6 @@ export default function YeniYaziPage() {
     setAiLoading(false)
   }
 
-  const exec = useCallback((cmd: string, value?: string) => {
-    document.execCommand(cmd, false, value)
-    editorRef.current?.focus()
-  }, [])
-
   const uploadFile = async (file: File, folder: string): Promise<string | null> => {
     const sorun = dosyaKontrol(file)
     if (sorun) { alert(sorun); return null }
@@ -145,15 +140,6 @@ export default function YeniYaziPage() {
     const url = await uploadFile(file, 'covers')
     if (url) setCoverUrl(url)
     setUploading(false)
-  }
-
-  const handleInsertImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; if (!file) return
-    setUploading(true)
-    const url = await uploadFile(file, 'content')
-    if (url) exec('insertImage', url)
-    setUploading(false)
-    e.target.value = ''
   }
 
   const handle = async (e: React.FormEvent) => {
@@ -179,25 +165,6 @@ export default function YeniYaziPage() {
     }
     router.push('/admin')
   }
-
-  const toolbarBtns = [
-    { label: 'B',  title: 'Kalın',       action: () => exec('bold'),                     style: { fontWeight: 700 } as React.CSSProperties },
-    { label: 'I',  title: 'İtalik',      action: () => exec('italic'),                   style: { fontStyle: 'italic' } as React.CSSProperties },
-    { label: 'U',  title: 'Altçizgi',    action: () => exec('underline'),                style: { textDecoration: 'underline' } as React.CSSProperties },
-    { label: 'H1', title: 'Başlık 1',    action: () => exec('formatBlock','h2'),         style: {} },
-    { label: 'H2', title: 'Başlık 2',    action: () => exec('formatBlock','h3'),         style: {} },
-    { label: '¶',  title: 'Paragraf',    action: () => exec('formatBlock','p'),          style: {} },
-    { label: '|',  title: 'sep',         action: () => null,                             style: {} },
-    { label: '≡',  title: 'Liste',       action: () => exec('insertUnorderedList'),      style: {} },
-    { label: '1.', title: 'Numaralı',    action: () => exec('insertOrderedList'),        style: {} },
-    { label: '"',  title: 'Alıntı',      action: () => exec('formatBlock','blockquote'), style: { fontSize:'1.1rem' } as React.CSSProperties },
-    { label: '|',  title: 'sep',         action: () => null,                             style: {} },
-    { label: '🔗', title: 'Link',        action: () => { const u = prompt('URL:'); if (u) exec('createLink', u) }, style: {} },
-    { label: '🖼',  title: 'Görsel URL',  action: () => { const u = prompt('Görsel URL:'); if (u) exec('insertImage', u) }, style: {} },
-    { label: '📁', title: 'Görsel Yükle',action: () => imgFileRef.current?.click(),      style: {} },
-    { label: '|',  title: 'sep',         action: () => null,                             style: {} },
-    { label: '✕',  title: 'Temizle',     action: () => exec('removeFormat'),            style: { color:'#b03030' } as React.CSSProperties },
-  ]
 
   return (
     <AdminShell
@@ -406,43 +373,18 @@ export default function YeniYaziPage() {
 
             {!preview ? (
               <>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', padding: '0.4rem 0.6rem', background: '#fbf9f6', border: '1px solid #e4ddd1', borderBottom: 'none', borderRadius: '10px 10px 0 0' }}>
-                  {toolbarBtns.map((btn, i) =>
-                    btn.label === '|' ? (
-                      <div key={i} style={{ width: 1, background: '#e4ddd1', margin: '2px 4px', alignSelf: 'stretch' }} />
-                    ) : (
-                      <button key={i} type="button" title={btn.title}
-                        onMouseDown={e => { e.preventDefault(); btn.action() }}
-                        style={{ background: 'transparent', border: 'none', color: '#2c2419', cursor: 'pointer', padding: '0.3rem 0.55rem', borderRadius: 6, minWidth: 28, fontSize: btn.label.length > 1 ? '0.65rem' : '0.85rem', ...btn.style }}
-                      >{btn.label}</button>
-                    )
-                  )}
-                </div>
-                <input ref={imgFileRef} type="file" accept="image/*" onChange={handleInsertImage} style={{ display: 'none' }} />
-                <div
-                  ref={editorRef}
-                  contentEditable
-                  suppressContentEditableWarning
-                  onInput={() => setContentHtml(editorRef.current?.innerHTML ?? '')}
-                  data-placeholder="Yazınızı buraya yazın…"
-                  style={{ minHeight: 460, padding: '1.4rem 1.2rem', background: '#fbf9f6', border: '1px solid #e4ddd1', borderRadius: '0 0 10px 10px', color: '#2c2419', outline: 'none', fontSize: '1rem', lineHeight: 1.85, fontFamily: "'Open Sans',sans-serif" }}
+                <RichEditor
+                  editorRef={editorRef}
+                  onChange={setContentHtml}
+                  onUpload={uploadFile}
                 />
-                <style>{`
-                  [contenteditable]:empty:before{content:attr(data-placeholder);color:#a89c8c;pointer-events:none}
-                  [contenteditable] h2{font-family:'Playfair Display',serif;font-size:1.6rem;margin:1.2rem 0 0.5rem}
-                  [contenteditable] h3{font-family:'Playfair Display',serif;font-size:1.2rem;margin:1rem 0 0.4rem;color:#8b5e3c}
-                  [contenteditable] blockquote{border-left:3px solid #b5734a;padding-left:1rem;margin:1rem 0;color:#2c2419;font-style:italic}
-                  [contenteditable] ul,[contenteditable] ol{padding-left:1.5rem;margin:0.5rem 0}
-                  [contenteditable] a{color:#b5734a;text-decoration:underline}
-                  [contenteditable] img{max-width:100%;border-radius:8px;margin:0.75rem 0;display:block}
-                  details summary::-webkit-details-marker{display:none}
-                `}</style>
+                <style>{`details summary::-webkit-details-marker{display:none}`}</style>
               </>
             ) : (
-              <div style={{ minHeight: 420, padding: '2rem', background: '#f5f0e8', color: '#ffffff', borderRadius: 10 }}>
+              <div className="post-content" style={{ minHeight: 420, padding: '2rem', background: '#fff', border: '1px solid #e4ddd1', color: '#2c2419', borderRadius: 10 }}>
                 {coverUrl && <img src={coverUrl} alt="" style={{ width: '100%', height: 300, objectFit: 'cover', borderRadius: 10, marginBottom: '2rem' }} />}
                 <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: '2rem', marginBottom: '1rem' }}>{title || 'Başlık yok'}</h1>
-                <div dangerouslySetInnerHTML={{ __html: contentHtml || '<p style="color:#999">İçerik yok</p>' }} />
+                <div dangerouslySetInnerHTML={{ __html: contentHtml || '<p style="color:#a89c8c">İçerik yok</p>' }} />
               </div>
             )}
           </div>

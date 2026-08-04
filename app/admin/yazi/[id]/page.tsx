@@ -4,7 +4,8 @@ import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import AdminShell from '@/components/AdminShell'
-import { dosyaKontrol, MAKS_MB } from '@/lib/upload'
+import RichEditor from '@/components/RichEditor'
+import { dosyaKontrol } from '@/lib/upload'
 
 export default function YaziDuzenle() {
   const { id } = useParams() as { id: string }
@@ -60,15 +61,19 @@ export default function YaziDuzenle() {
     if (el && el.innerHTML === '') el.innerHTML = contentHtml
   }, [loading])
 
-  const exec = useCallback((cmd: string, value?: string) => {
-    document.execCommand(cmd, false, value)
-    editorRef.current?.focus()
+  // Görsel yükleme. Hem kapak hem içerik görselleri bunu kullanır.
+  const uploadFile = useCallback(async (file: File, folder: string): Promise<string | null> => {
+    const sorun = dosyaKontrol(file)
+    if (sorun) { alert(sorun); return null }
+    setUploading(true)
+    const ext  = file.name.split('.').pop()
+    const path = `${folder}/${crypto.randomUUID()}.${ext}`
+    const { error: upErr } = await supabase.storage.from('images').upload(path, file, { upsert: true })
+    setUploading(false)
+    if (upErr) { alert('Yükleme hatası: ' + upErr.message); return null }
+    const { data } = supabase.storage.from('images').getPublicUrl(path)
+    return data.publicUrl
   }, [])
-
-  const insertLink = () => {
-    const url = prompt('URL girin:')
-    if (url) exec('createLink', url)
-  }
 
   const handle = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -98,22 +103,6 @@ export default function YaziDuzenle() {
     await supabase.from('posts').delete().eq('id', id)
     router.push('/admin')
   }
-
-  const toolbarBtns = [
-    { label: 'B',  title: 'Kalın',     action: () => exec('bold'),               style: { fontWeight: 700 } as React.CSSProperties },
-    { label: 'I',  title: 'İtalik',    action: () => exec('italic'),              style: { fontStyle: 'italic' } as React.CSSProperties },
-    { label: 'U',  title: 'Alt çizgi', action: () => exec('underline'),           style: { textDecoration: 'underline' } as React.CSSProperties },
-    { label: 'H1', title: 'Başlık 1',  action: () => exec('formatBlock', 'h2'),   style: {} },
-    { label: 'H2', title: 'Başlık 2',  action: () => exec('formatBlock', 'h3'),   style: {} },
-    { label: '¶',  title: 'Paragraf',  action: () => exec('formatBlock', 'p'),    style: {} },
-    { label: '|',  title: 'sep',       action: () => null,                        style: {} },
-    { label: '≡',  title: 'Liste',     action: () => exec('insertUnorderedList'), style: {} },
-    { label: '1.', title: 'Numaralı',  action: () => exec('insertOrderedList'),   style: {} },
-    { label: '"',  title: 'Alıntı',    action: () => exec('formatBlock', 'blockquote'), style: { fontSize: '1.1rem' } as React.CSSProperties },
-    { label: '|',  title: 'sep',       action: () => null,                        style: {} },
-    { label: '🔗', title: 'Link',      action: insertLink,                        style: {} },
-    { label: '✕',  title: 'Temizle',   action: () => exec('removeFormat'),        style: { color: '#b03030' } as React.CSSProperties },
-  ]
 
   if (loading) return (
     <AdminShell title="Yazıyı düzenle">
@@ -207,19 +196,11 @@ export default function YaziDuzenle() {
                   {uploading ? '⏳ yükleniyor…' : '📁 bilgisayardan yükle'}
                 </button>
                 <input ref={coverFileRef} type="file" accept="image/*" onChange={async e => {
-                  const file = e.target.files?.[0]; if (!file) return
-                  const sorun = dosyaKontrol(file)
-                  if (sorun) { alert(sorun); e.target.value = ''; return }
-                  setUploading(true)
-                  const ext = file.name.split('.').pop()
-                  const path = `covers/${Date.now()}.${ext}`
-                  const { error: upErr } = await supabase.storage.from('images').upload(path, file, { upsert: true })
-                  if (!upErr) {
-                    const { data } = supabase.storage.from('images').getPublicUrl(path)
-                    setCoverUrl(data.publicUrl)
-                  } else alert('Yükleme hatası: ' + upErr.message)
-                  setUploading(false)
+                  const file = e.target.files?.[0]
                   e.target.value = ''
+                  if (!file) return
+                  const url = await uploadFile(file, 'covers')
+                  if (url) setCoverUrl(url)
                 }} style={{ display: 'none' }} />
                 <span style={{ fontSize: '0.65rem', color: '#a89c8c' }}>veya</span>
                 <input value={coverUrl} onChange={e => setCoverUrl(e.target.value)} placeholder="https://… görsel URL yaz" style={{ ...inp, flex: 1, minWidth: 200 }} />
@@ -230,38 +211,14 @@ export default function YaziDuzenle() {
           <div>
             <label style={{ ...lbl, marginBottom: '0.5rem' }}>içerik</label>
             {!preview ? (
-              <>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', padding: '0.4rem 0.6rem', background: '#fbf9f6', border: '1px solid #e4ddd1', borderBottom: 'none', borderRadius: '10px 10px 0 0' }}>
-                  {toolbarBtns.map((btn, i) =>
-                    btn.label === '|' ? (
-                      <div key={i} style={{ width: 1, background: '#e4ddd1', margin: '2px 4px', alignSelf: 'stretch' }} />
-                    ) : (
-                      <button key={i} type="button" title={btn.title}
-                        onMouseDown={e => { e.preventDefault(); btn.action() }}
-                        style={{ background: 'transparent', border: 'none', color: '#2c2419', cursor: 'pointer', padding: '0.3rem 0.55rem', borderRadius: 6, minWidth: 28, fontSize: btn.label.length > 1 ? '0.65rem' : '0.85rem', ...btn.style }}
-                      >{btn.label}</button>
-                    )
-                  )}
-                </div>
-                <div
-                  ref={editorRef}
-                  contentEditable
-                  suppressContentEditableWarning
-                  onInput={() => setContentHtml(editorRef.current?.innerHTML ?? '')}
-                  data-placeholder="Yazınızı buraya yazın..."
-                  style={{ minHeight: 420, padding: '1.4rem 1.2rem', background: '#fbf9f6', border: '1px solid #e4ddd1', borderRadius: '0 0 10px 10px', color: '#2c2419', outline: 'none', fontSize: '1rem', lineHeight: 1.85, fontFamily: "'Open Sans', sans-serif" }}
-                />
-                <style>{`
-                  [contenteditable]:empty:before{content:attr(data-placeholder);color:#a89c8c;pointer-events:none}
-                  [contenteditable] h2{font-family:'Playfair Display',serif;font-size:1.6rem;margin:1.2rem 0 0.5rem}
-                  [contenteditable] h3{font-family:'Playfair Display',serif;font-size:1.2rem;margin:1rem 0 0.4rem;color:#8b5e3c}
-                  [contenteditable] blockquote{border-left:3px solid #b5734a;padding-left:1rem;margin:1rem 0;color:#2c2419;font-style:italic}
-                  [contenteditable] ul,[contenteditable] ol{padding-left:1.5rem;margin:0.5rem 0}
-                  [contenteditable] a{color:#b5734a;text-decoration:underline}
-                `}</style>
-              </>
+              <RichEditor
+                editorRef={editorRef}
+                onChange={setContentHtml}
+                onUpload={uploadFile}
+                minHeight={420}
+              />
             ) : (
-              <div style={{ minHeight: 420, padding: '2rem', background: '#f5f0e8', color: '#ffffff', borderRadius: 10, fontSize: '1rem', lineHeight: 1.85 }}>
+              <div className="post-content" style={{ minHeight: 420, padding: '2rem', background: '#fff', border: '1px solid #e4ddd1', color: '#2c2419', borderRadius: 10 }}>
                 <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: '2rem', marginBottom: '1rem' }}>{title}</h1>
                 <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
               </div>
