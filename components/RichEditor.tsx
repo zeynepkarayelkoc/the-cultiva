@@ -266,7 +266,7 @@ export default function RichEditor({ editorRef, onChange, onUpload, minHeight = 
         <Dugme title="Görsel yükle" onAction={() => dosyaRef.current?.click()}>
           {yukleniyor ? '⏳' : '🖼'}
         </Dugme>
-        <Dugme title="Görsel adresi yapıştır" onAction={() => { const u = prompt('Görsel URL:'); if (u) gorselEkle(u) }}>🔗🖼</Dugme>
+        <Dugme title="Görsel adresi yapıştır" onAction={() => { const u = prompt('Görsel URL:'); if (u) gorselEkle(u) }} stil={{ fontSize: '0.62rem', letterSpacing: '0.05em' }}>IMG URL</Dugme>
 
         <Ayrac />
 
