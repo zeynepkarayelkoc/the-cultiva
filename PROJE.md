@@ -84,6 +84,7 @@ the-cultiva/
 │   ├── KategorilerClient.tsx         # Kategori yönetimi
 │   ├── TestlerClient.tsx             # Test listesi
 │   ├── TestEditor.tsx                # Test editörü (soru/şık/görsel/sonuç)
+│   ├── RichEditor.tsx                # Yazı içeriği editörü (iki yazı sayfası da bunu kullanır)
 │   ├── AyarlarClient.tsx             # Site kimliği ayarları
 │   ├── QuizPlayer.tsx                # Test çözme akışı (istemci)
 │   ├── Navbar.tsx                    # Site üst menüsü
@@ -238,6 +239,38 @@ Bunlar geçmişte zaman kaybettiren, tekrar karşılaşılabilecek konular:
 5. **Düzenleme editörüne içerik yüklenmesi.** Sayfa açılırken editör henüz DOM'da
    olmadığı için içerik `loading` bitince ayrı bir effect'te yazılır. Ayrıca boş
    editörle kaydetmek mevcut içeriği silmesin diye koruma var.
+
+6. **Editör stilleri iki yerde.** `components/RichEditor.tsx` içindeki
+   `.yazi-editor` kuralları, `app/globals.css` içindeki `.post-content` kurallarının
+   kopyası. Amaç: editörde görülen boyut, sitede çıkan boyutla birebir aynı olsun.
+   Birini değiştirirsen diğerini de değiştir, yoksa yazarlar yanlış boyut görür.
+
+7. **Punto değiştirme `<font>` üzerinden çalışır.** `execCommand('fontSize')` yalnızca
+   1-7 arası değer kabul ettiği için önce 7 ile işaretlenip üretilen `<font size="7">`
+   etiketleri kendi `<span style="font-size:…">`imizle değiştiriliyor. execCommand
+   kullanımdan kalkmış sayılır ama contenteditable için hâlâ en pratik yol.
+
+---
+
+## Yazı içeriği editörü
+
+`components/RichEditor.tsx`. Hem "yeni yazı" hem "yazıyı düzenle" sayfası bunu kullanır.
+
+| Araç | Ne yapar |
+|------|----------|
+| Metin biçimi | Normal metin, Başlık 1/2/3 (h2/h3/h4), Alıntı |
+| Yazı boyutu | Küçük / Normal / Büyük / Çok büyük hazır ölçek |
+| px kutusu | Kendi puntonu yaz (10-72), Enter'a bas |
+| B I U S | Kalın, italik, alt çizgi, üstü çizili |
+| Listeler | Madde ve numaralı liste, yatay ayraç |
+| Görsel | Bilgisayardan yükle (5 MB sınır) ya da adres yapıştır |
+
+Sayfadaki `h1` yazının başlığıdır, o yüzden içerikteki "Başlık 1" aslında `h2` üretir.
+SEO açısından doğrusu bu, bir sayfada tek `h1` olmalı.
+
+Görsele tıklayınca üstte bir şerit açılır: genişlik (%40 / %65 / %85 / %100) ve
+hizalama (sol / orta / sağ). Değerler görselin kendi `style` özniteliğine yazılır,
+yüzde olduğu için mobilde de düzgün küçülür.
 
 ---
 
