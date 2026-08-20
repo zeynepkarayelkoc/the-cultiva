@@ -12,6 +12,7 @@ import AdBanner from '@/components/AdBanner'
 import JsonLd from '@/components/JsonLd'
 import { coverUrl } from '@/lib/coverUrl'
 import { sayfaMetadata, makaleSemasi, kirintiSemasi, kisalt } from '@/lib/seo'
+import { yaziDili, ceviriSlug, dilAlternatifleri } from '@/lib/translations'
 
 const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', sinema: 'sinema', rehber: 'rehber', kitap: 'kitap' }
 
@@ -45,6 +46,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     yayinTarihi: post.created_at,
     guncellemeTarihi: post.updated_at ?? post.created_at,
     yazarlar: post.author_name ? [post.author_name] : undefined,
+    dil: yaziDili(post.slug),
+    dilAlternatifleri: dilAlternatifleri(post.slug),
   })
 }
 
@@ -55,9 +58,13 @@ export default async function YaziPage({ params }: { params: Promise<{ slug: str
   if (!post) notFound()
 
   const kategoriAdi = labels[post.category ?? ''] ?? post.category ?? ''
+  const dil = yaziDili(post.slug)
+  const ceviri = ceviriSlug(post.slug)
 
   return (
-    <article style={{ minHeight: '100vh' }}>
+    // lang niteliği yazının kendi dilini söyler. Kök layout'ta site geneli
+    // "tr" tanımlı; İngilizce yazılarda burada düzeltiliyor.
+    <article lang={dil} style={{ minHeight: '100vh' }}>
       <JsonLd veri={[
         makaleSemasi({
           baslik: post.meta_title?.trim() || post.title,
@@ -68,6 +75,7 @@ export default async function YaziPage({ params }: { params: Promise<{ slug: str
           yayinTarihi: post.created_at,
           guncellemeTarihi: post.updated_at ?? post.created_at,
           kategori: kategoriAdi,
+          dil,
         }),
         kirintiSemasi([
           { ad: 'The Cultiva', yol: '/' },
@@ -154,6 +162,19 @@ export default async function YaziPage({ params }: { params: Promise<{ slug: str
           format="fluid"
           style={{ margin: '3rem 0', padding: '0.5rem 0' }}
         />
+
+        {/* Diğer dildeki sürüm */}
+        {ceviri && (
+          <div style={{ marginTop: '2.5rem', padding: '1rem 1.2rem', background: 'rgba(181,115,74,0.07)', borderRadius: 10, border: '1px solid var(--border)' }}>
+            <Link
+              href={`/yazi/${ceviri.slug}`}
+              hrefLang={ceviri.dil}
+              style={{ fontSize: '0.85rem', color: 'var(--terra)', borderBottom: '1px solid rgba(181,115,74,0.35)' }}
+            >
+              {ceviri.dil === 'en' ? 'Read this article in English →' : 'Bu yazıyı Türkçe oku →'}
+            </Link>
+          </div>
+        )}
 
         {/* Back link */}
         <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--border)' }}>

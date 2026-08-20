@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import { createPublicClient } from '@/lib/supabase/public'
 import { authorSlug } from '@/lib/authorSlug'
 import { SITE_ADRES } from '@/lib/seo'
+import { dilAlternatifleri } from '@/lib/translations'
 
 /*
   Site haritası. Google'ın 510 yazıyı tek tek keşfetmesini beklemek yerine
@@ -47,12 +48,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
-  const yaziSayfalari: MetadataRoute.Sitemap = (yazilar.data ?? []).map(y => ({
-    url: `${SITE_ADRES}/yazi/${y.slug}`,
-    lastModified: new Date(y.created_at ?? bugun),
-    changeFrequency: 'monthly' as const,
-    priority: 0.9,
-  }))
+  // Çeviri çiftlerini site haritasında da bildiriyoruz. Google hreflang'i
+  // hem sayfadan hem buradan okuyunca eşleşmeyi daha hızlı kabul ediyor.
+  const yaziSayfalari: MetadataRoute.Sitemap = (yazilar.data ?? []).map(y => {
+    const alternatifler = dilAlternatifleri(y.slug)
+    return {
+      url: `${SITE_ADRES}/yazi/${y.slug}`,
+      lastModified: new Date(y.created_at ?? bugun),
+      changeFrequency: 'monthly' as const,
+      priority: 0.9,
+      ...(alternatifler
+        ? {
+            alternates: {
+              languages: Object.fromEntries(
+                Object.entries(alternatifler).map(([k, v]) => [k, `${SITE_ADRES}${v}`]),
+              ),
+            },
+          }
+        : {}),
+    }
+  })
 
   // Aynı yazar birden çok yazıda geçiyor, tekilleştir.
   const yazarSluglari = new Set(

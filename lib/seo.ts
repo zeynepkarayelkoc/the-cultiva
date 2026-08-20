@@ -37,6 +37,8 @@ type SayfaSeo = {
   guncellemeTarihi?: string | null
   yazarlar?: string[]
   indeksleme?: boolean        // false ise arama motorlarına kapat
+  dil?: 'tr' | 'en'
+  dilAlternatifleri?: Record<string, string>   // hreflang: dil kodu -> yol
 }
 
 /**
@@ -60,14 +62,23 @@ export async function sayfaMetadata(s: SayfaSeo): Promise<Metadata> {
     // Ek zaten yukarıda koşullu olarak yapıldı, iki kez eklenmesin.
     title: { absolute: baslik },
     description: aciklama,
-    alternates: { canonical: adres },
+    alternates: {
+      canonical: adres,
+      ...(s.dilAlternatifleri
+        ? {
+            languages: Object.fromEntries(
+              Object.entries(s.dilAlternatifleri).map(([k, v]) => [k, mutlakAdres(v)]),
+            ),
+          }
+        : {}),
+    },
     ...(s.indeksleme === false ? { robots: { index: false, follow: true } } : {}),
     openGraph: {
       title: baslik,
       description: aciklama,
       url: adres,
       siteName: 'The Cultiva',
-      locale: 'tr_TR',
+      locale: s.dil === 'en' ? 'en_US' : 'tr_TR',
       type: s.tip ?? 'website',
       ...(gorsel ? { images: [{ url: gorsel, width: 1200, height: 630, alt: hamBaslik }] } : {}),
       ...(s.tip === 'article'
@@ -100,6 +111,7 @@ type MakaleVeri = {
   yayinTarihi?: string | null
   guncellemeTarihi?: string | null
   kategori?: string | null
+  dil?: 'tr' | 'en'
 }
 
 export function makaleSemasi(m: MakaleVeri) {
@@ -121,7 +133,7 @@ export function makaleSemasi(m: MakaleVeri) {
     ...(m.yayinTarihi ? { datePublished: m.yayinTarihi } : {}),
     dateModified: m.guncellemeTarihi ?? m.yayinTarihi ?? undefined,
     ...(m.kategori ? { articleSection: m.kategori } : {}),
-    inLanguage: 'tr-TR',
+    inLanguage: m.dil === 'en' ? 'en' : 'tr-TR',
   }
 }
 

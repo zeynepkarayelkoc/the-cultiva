@@ -36,7 +36,16 @@ export function cleanContent(html: string): string {
     '$1'
   )
 
-  // 5) Görsel/link çıkınca geriye kalan boş paragrafları temizle
+  // 5) Bozuk iç bağlantıları metne çevir.
+  //    WordPress aktarımından kalma "/yazi/bir-slug,1525" gibi adresler var:
+  //    sonundaki virgül + sayı yüzünden hiçbir zaman eşleşmiyorlar, 404 veriyorlar.
+  //    Doğru hedefi tahmin etmek yerine bağlantıyı kaldırıp yazıyı bırakıyoruz.
+  out = out.replace(
+    /<a\b[^>]*href="[^"]*\/yazi\/[^"]*,\d+[^"]*"[^>]*>([\s\S]*?)<\/a>/gi,
+    '$1'
+  )
+
+  // 6) Görsel/link çıkınca geriye kalan boş paragrafları temizle
   out = out.replace(/<p>(\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, '')
 
   return out
