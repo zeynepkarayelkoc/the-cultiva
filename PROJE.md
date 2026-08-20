@@ -245,7 +245,16 @@ Bunlar geçmişte zaman kaybettiren, tekrar karşılaşılabilecek konular:
    kopyası. Amaç: editörde görülen boyut, sitede çıkan boyutla birebir aynı olsun.
    Birini değiştirirsen diğerini de değiştir, yoksa yazarlar yanlış boyut görür.
 
-7. **Punto değiştirme `<font>` üzerinden çalışır.** `execCommand('fontSize')` yalnızca
+7. **`posts` tablosunda `updated_at` kolonu YOK.** PostgREST'te olmayan bir kolonu
+   `select` içine yazarsan sorgunun tamamı hataya düşer ve boş döner. Site haritası
+   bu yüzden bir ara hiç yazı içermiyordu. `select('*')` güvenli, açık liste değil.
+
+8. **`cookies()` önbelleği kapatır.** `lib/supabase/server.ts` çerez okuyor; bir
+   sayfa ona dokunduğu anda Next.js rotayı zorunlu dinamik yapıyor ve
+   `export const revalidate` hiçbir işe yaramıyor. Herkese açık okuma yapan
+   sayfalarda `lib/supabase/public.ts` kullanılmalı.
+
+9. **Punto değiştirme `<font>` üzerinden çalışır.** `execCommand('fontSize')` yalnızca
    1-7 arası değer kabul ettiği için önce 7 ile işaretlenip üretilen `<font size="7">`
    etiketleri kendi `<span style="font-size:…">`imizle değiştiriliyor. execCommand
    kullanımdan kalkmış sayılır ama contenteditable için hâlâ en pratik yol.
@@ -274,6 +283,41 @@ yüzde olduğu için mobilde de düzgün küçülür.
 
 ---
 
+## SEO
+
+Ağustos 2026'ya kadar site Google'da neredeyse görünmüyordu, çünkü **hiçbir yazı
+sayfasında `generateMetadata` yoktu.** 510 yazının hepsi arama sonuçlarında
+"The Cultiva yaşam, sanat & seyahat" başlığıyla çıkıyordu; Google açısından hepsi
+birbirinin aynısı sayfalardı. Panelde doldurulan `meta_title` / `meta_description`
+alanları kaydediliyor ama okunmuyordu.
+
+Şimdi kurulan yapı:
+
+| Dosya | Görevi |
+|-------|--------|
+| `lib/seo.ts` | `sayfaMetadata()` başlık/açıklama/canonical/OG/Twitter üretir; şema fonksiyonları |
+| `components/JsonLd.tsx` | Yapısal veriyi sayfaya gömer |
+| `app/sitemap.ts` | `/sitemap.xml`, tüm yazı/kategori/yazar/test adresleri |
+| `app/robots.ts` | `/robots.txt`, admin ve panel taranmaz, sitemap'i işaret eder |
+| `lib/supabase/public.ts` | Çerezsiz okuma istemcisi, önbelleklemeyi mümkün kılar |
+
+Kurallar:
+
+- Yeni bir herkese açık sayfa eklerken **mutlaka `generateMetadata` yaz** ve
+  `sayfaMetadata()` kullan. Canonical adres olmadan sayfa kopya sayılabilir.
+- Başlık ekini `sayfaMetadata` hallediyor. Kendin "| The Cultiva" ekleme, iki kez
+  yazılır. Layout'taki `%s | The Cultiva` şablonu `title: { absolute }` ile atlanıyor.
+- Yazıya özel açıklama sırası: `meta_description` → `excerpt` → içeriğin ilk 158 karakteri.
+- Yönetim ve üyelik sayfalarına `robots: { index: false }` ver.
+
+Search Console'da yapılacaklar (site zaten doğrulanmış durumda):
+
+1. Sitemaps → `sitemap.xml` gönder
+2. URL Denetimi ile birkaç yazıyı test edip "Dizine ekleme talebi" gönder
+3. 1-2 hafta sonra Performans raporunda gösterim sayısına bak
+
+---
+
 ## Yapılacaklar
 
 - [ ] Instagram, İletişim, Hakkında sayfaları (şu an altbilgide `#` linkler)
@@ -282,3 +326,8 @@ yüzde olduğu için mobilde de düzgün küçülür.
 - [ ] Yazar sayfalarında biyografi ve fotoğrafı göster (`authors` tablosunda alanlar hazır)
 - [ ] Testleri sosyal medyada paylaşma düğmesi
 - [ ] Mobil görünümü baştan sona gözden geçir
+- [ ] Search Console'a `sitemap.xml` gönder
+- [ ] İçerik görsellerine `alt` metni (editörde alan yok, eklenmeli; görsel aramasından trafik gelir)
+- [ ] Yazı sonuna "ilgili yazılar" bloğu (iç bağlantı, Google'ın site içi gezinmesini kolaylaştırır)
+- [ ] `meta_title` / `meta_description` boş kalan yazıları doldur (özet yeterli ama özel yazılmış olanı daha iyi)
+- [ ] Yazı sonu paylaşım düğmeleri
