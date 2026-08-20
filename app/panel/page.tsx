@@ -1,8 +1,15 @@
 export const dynamic = 'force-dynamic'
 
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+
+// Üyeye özel sayfa, arama sonuçlarında çıkmasın.
+export const metadata: Metadata = {
+  title: 'Panelim',
+  robots: { index: false, follow: false },
+}
 
 export default async function PanelPage() {
   const supabase = await createClient()

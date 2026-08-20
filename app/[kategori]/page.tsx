@@ -1,19 +1,44 @@
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import { coverStyle } from '@/lib/coverUrl'
+import JsonLd from '@/components/JsonLd'
+import { sayfaMetadata, kirintiSemasi } from '@/lib/seo'
 
 const valid =['yasam', 'seyahat', 'sanat', 'sinema', 'rehber', 'kitap']
 const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', sinema: 'sinema', rehber: 'rehber', kitap: 'kitap' }
+
+// Kategori sayfalarının arama sonucundaki açıklaması. Genel bir cümle yerine
+// her kategoriye özel yazıldı, çünkü aynı açıklama Google'da tekrar sayılıyor.
+const kategoriAciklama: Record<string, string> = {
+  yasam: 'Gündelik hayatı daha iyi yaşamaya dair yazılar: alışkanlıklar, mekânlar, insanlar ve küçük ayrıntılar.',
+  seyahat: 'Şehirler, rotalar ve yol notları. Gitmeden önce okunacak, döndükten sonra hatırlanacak seyahat yazıları.',
+  sanat: 'Eserler, sanatçılar ve akımlar. Bir tabloya neden öyle baktığımızı anlatan sanat yazıları.',
+  sinema: 'Filmler, yönetmenler ve sahneler üzerine yazılar. İzledikten sonra konuşmak isteyeceğin şeyler.',
+  rehber: 'Adım adım anlatılan pratik rehberler. Nereden başlanır, neye dikkat edilir, ne işe yarar.',
+  kitap: 'Kitaplar, yazarlar ve okuma notları. Ne okumalı sorusuna verilmiş uzun cevaplar.',
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ kategori: string }> }): Promise<Metadata> {
+  const { kategori } = await params
+  if (!valid.includes(kategori)) return { title: 'Sayfa bulunamadı' }
+  const ad = labels[kategori]
+  return sayfaMetadata({
+    baslik: `${ad.charAt(0).toLocaleUpperCase('tr')}${ad.slice(1)} yazıları`,
+    aciklama: kategoriAciklama[kategori] ?? '',
+    yol: `/${kategori}`,
+  })
+}
 const colors: Record<string, string> = { yasam: '#d4c0a0', seyahat: '#a0b8c0', sanat: '#c0b0c8', sinema: '#b89aa8', rehber: '#a0c0a8', kitap: '#c8c0a0' }
 
 export default async function KategoriPage({ params }: { params: Promise<{ kategori: string }> }) {
   const { kategori } = await params
   if (!valid.includes(kategori)) notFound()
 
-  const supabase = await createClient()
+  const supabase = createPublicClient()
   const { data: posts } = await supabase
     .from('posts')
     .select('*')
@@ -23,6 +48,11 @@ export default async function KategoriPage({ params }: { params: Promise<{ kateg
 
   return (
     <div style={{ minHeight: '100vh' }}>
+      <JsonLd veri={kirintiSemasi([
+        { ad: 'The Cultiva', yol: '/' },
+        { ad: labels[kategori], yol: `/${kategori}` },
+      ])} />
+
       {/* Header */}
       <div className="section-pad" style={{
         padding: '5rem 2.5rem 3rem',

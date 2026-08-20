@@ -1,16 +1,21 @@
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { coverStyle } from '@/lib/coverUrl'
+import { sayfaMetadata } from '@/lib/seo'
 
-export const metadata = {
-  title: 'Testler',
-  description: 'Sanat, sinema ve kültür testleri. Kaç doğru yapacaksın?',
+export async function generateMetadata(): Promise<Metadata> {
+  return sayfaMetadata({
+    baslik: 'Testler',
+    aciklama: 'Sanat, sinema, kitap ve kültür testleri. Puanlı bilgi testleri ve "sen kimsin" tarzı kişilik testleri.',
+    yol: '/testler',
+  })
 }
 
 export default async function TestlerPage() {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
   const { data: quizzes } = await supabase
     .from('quizzes')
     .select('id,slug,title,description,cover_url,type,category,play_count')

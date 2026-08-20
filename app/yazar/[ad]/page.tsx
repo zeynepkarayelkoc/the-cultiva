@@ -1,17 +1,43 @@
-export const dynamic = 'force-dynamic'
+export const revalidate = 300
 
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import { authorSlug } from '@/lib/authorSlug'
 import { coverStyle } from '@/lib/coverUrl'
+import { sayfaMetadata } from '@/lib/seo'
+
+// Bir yazarın adını slug'ından bul. Yazar tablosu değil yazılar üzerinden
+// bakıyoruz, çünkü author_name yazının kendisinde tutuluyor.
+async function yazarBul(ad: string): Promise<string | null> {
+  const supabase = createPublicClient()
+  const { data } = await supabase
+    .from('posts')
+    .select('author_name')
+    .eq('published', true)
+    .not('author_name', 'is', null)
+  const eslesen = (data ?? []).find(p => p.author_name && authorSlug(p.author_name) === ad)
+  return eslesen?.author_name ?? null
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ ad: string }> }): Promise<Metadata> {
+  const { ad } = await params
+  const isim = await yazarBul(ad)
+  if (!isim) return { title: 'Yazar bulunamadı' }
+  return sayfaMetadata({
+    baslik: `${isim} yazıları`,
+    aciklama: `${isim} imzalı yazılar. The Cultiva'da yayımlanan tüm yazılarını burada bulabilirsin.`,
+    yol: `/yazar/${ad}`,
+  })
+}
 
 const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', sinema: 'sinema', rehber: 'rehber', kitap: 'kitap' }
 const colors: Record<string, string> = { yasam: '#8b2635', seyahat: '#1e3a5f', sanat: '#5c3460', sinema: '#7a3b5c', rehber: '#2d5a3d', kitap: '#7a4f1a' }
 
 export default async function YazarPage({ params }: { params: Promise<{ ad: string }> }) {
   const { ad } = await params
-  const supabase = await createClient()
+  const supabase = createPublicClient()
 
   const { data: posts } = await supabase
     .from('posts')

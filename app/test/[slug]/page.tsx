@@ -6,6 +6,7 @@ import Link from 'next/link'
 import QuizPlayer from '@/components/QuizPlayer'
 import type { Quiz } from '@/lib/quiz'
 import type { Metadata } from 'next'
+import { sayfaMetadata } from '@/lib/seo'
 
 async function testGetir(slug: string) {
   const supabase = await createClient()
@@ -20,12 +21,14 @@ async function testGetir(slug: string) {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const quiz = await testGetir(slug)
-  if (!quiz) return {}
-  return {
-    title: quiz.title,
-    description: quiz.description ?? undefined,
-    openGraph: { title: quiz.title, description: quiz.description ?? undefined },
-  }
+  if (!quiz) return { title: 'Test bulunamadı' }
+  return sayfaMetadata({
+    baslik: quiz.title,
+    aciklama: quiz.description
+      ?? `${quiz.title} testini çöz, sonucunu arkadaşlarınla paylaş.`,
+    yol: `/test/${quiz.slug}`,
+    gorsel: quiz.cover_url,
+  })
 }
 
 export default async function TestPage({ params }: { params: Promise<{ slug: string }> }) {

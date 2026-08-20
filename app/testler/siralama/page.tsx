@@ -2,8 +2,16 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import type { Metadata } from 'next'
+import { sayfaMetadata } from '@/lib/seo'
 
-export const metadata = { title: 'Şampiyonluk tablosu' }
+export async function generateMetadata(): Promise<Metadata> {
+  return sayfaMetadata({
+    baslik: 'Şampiyonluk tablosu',
+    aciklama: 'The Cultiva testlerinde en yüksek puanı toplayanlar. Sıralamaya girmek için giriş yapman yeterli.',
+    yol: '/testler/siralama',
+  })
+}
 
 type Satir = { id: string; ad: string; puan: number; test: number; dogru: number; toplam: number }
 

@@ -1,11 +1,25 @@
-export const dynamic = 'force-dynamic'
+// Ana sayfa sık değişiyor ama her ziyarette sıfırdan üretilmesi gerekmiyor.
+export const revalidate = 120
 
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public'
 import { coverUrl } from '@/lib/coverUrl'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import WelcomeScreen from '@/components/WelcomeScreen'
 import HeroSlider from '@/components/HeroSlider'
 import AdBanner from '@/components/AdBanner'
+import JsonLd from '@/components/JsonLd'
+import { sayfaMetadata, siteSemasi } from '@/lib/seo'
+import { siteAyarlari } from '@/lib/siteSettings'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const a = await siteAyarlari()
+  return sayfaMetadata({
+    baslik: a.site_title,
+    aciklama: a.site_description,
+    yol: '/',
+  })
+}
 
 const categoryColors: Record<string, string> = {
   yasam: '#8b2635', seyahat: '#1e3a5f', sanat: '#5c3460',
@@ -23,7 +37,9 @@ const editorialCats = [
 ]
 
 export default async function Home() {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
+  // Yapısal veri de panelden yönetilen başlık/açıklamayı kullansın
+  const ayar = await siteAyarlari()
   const { data: posts } = await supabase
     .from('posts')
     .select('*')
@@ -59,6 +75,7 @@ export default async function Home() {
 
   return (
     <>
+      <JsonLd veri={siteSemasi(ayar.site_title, ayar.site_description)} />
       <WelcomeScreen />
 
       {/* ── TAM EKRAN HERO ── */}

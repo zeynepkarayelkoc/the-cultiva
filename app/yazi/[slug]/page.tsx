@@ -1,30 +1,81 @@
-export const dynamic = 'force-dynamic'
+// Yazılar sık değişmiyor, 5 dakikada bir yenilenmesi yeterli.
+// force-dynamic her ziyarette sıfırdan üretiyordu, sayfa hızını düşürüyordu.
+export const revalidate = 300
 
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import { authorSlug } from '@/lib/authorSlug'
 import { cleanContent } from '@/lib/cleanContent'
 import AdBanner from '@/components/AdBanner'
+import JsonLd from '@/components/JsonLd'
 import { coverUrl } from '@/lib/coverUrl'
+import { sayfaMetadata, makaleSemasi, kirintiSemasi, kisalt } from '@/lib/seo'
 
 const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', sinema: 'sinema', rehber: 'rehber', kitap: 'kitap' }
 
-export default async function YaziPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: post } = await supabase
+async function yaziGetir(slug: string) {
+  const supabase = createPublicClient()
+  const { data } = await supabase
     .from('posts')
     .select('*')
     .eq('slug', slug)
     .eq('published', true)
     .single()
+  return data
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const post = await yaziGetir(slug)
+  if (!post) return { title: 'Yazı bulunamadı' }
+
+  // Panelde doldurulan SEO alanları öncelikli, boşsa başlık ve özete düşer.
+  const aciklama = post.meta_description?.trim()
+    || post.excerpt?.trim()
+    || kisalt(post.content ?? '', 158)
+
+  return sayfaMetadata({
+    baslik: post.meta_title?.trim() || post.title,
+    aciklama,
+    yol: `/yazi/${post.slug}`,
+    gorsel: coverUrl(post),
+    tip: 'article',
+    yayinTarihi: post.created_at,
+    guncellemeTarihi: post.updated_at ?? post.created_at,
+    yazarlar: post.author_name ? [post.author_name] : undefined,
+  })
+}
+
+export default async function YaziPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const post = await yaziGetir(slug)
 
   if (!post) notFound()
 
+  const kategoriAdi = labels[post.category ?? ''] ?? post.category ?? ''
+
   return (
     <article style={{ minHeight: '100vh' }}>
+      <JsonLd veri={[
+        makaleSemasi({
+          baslik: post.meta_title?.trim() || post.title,
+          aciklama: post.meta_description?.trim() || post.excerpt || '',
+          yol: `/yazi/${post.slug}`,
+          gorsel: coverUrl(post),
+          yazar: post.author_name,
+          yayinTarihi: post.created_at,
+          guncellemeTarihi: post.updated_at ?? post.created_at,
+          kategori: kategoriAdi,
+        }),
+        kirintiSemasi([
+          { ad: 'The Cultiva', yol: '/' },
+          ...(post.category ? [{ ad: kategoriAdi, yol: `/${post.category}` }] : []),
+          { ad: post.title, yol: `/yazi/${post.slug}` },
+        ]),
+      ]} />
+
       {/* Cover */}
       <div style={{
         height: '55vh', minHeight: 360,
