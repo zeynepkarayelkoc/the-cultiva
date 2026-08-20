@@ -300,6 +300,8 @@ alanları kaydediliyor ama okunmuyordu.
 | `app/sitemap.ts` | `/sitemap.xml`, tüm yazı/kategori/yazar/test adresleri |
 | `app/robots.ts` | `/robots.txt`, admin ve panel taranmaz, sitemap'i işaret eder |
 | `lib/supabase/public.ts` | Çerezsiz okuma istemcisi, önbelleklemeyi mümkün kılar |
+| `lib/translations.ts` | Türkçe/İngilizce çeviri çiftleri, hreflang üretir |
+| `next.config.ts` | Eski adresler için kalıcı yönlendirmeler |
 
 Kurallar:
 
@@ -310,11 +312,51 @@ Kurallar:
 - Yazıya özel açıklama sırası: `meta_description` → `excerpt` → içeriğin ilk 158 karakteri.
 - Yönetim ve üyelik sayfalarına `robots: { index: false }` ver.
 
-Search Console'da yapılacaklar (site zaten doğrulanmış durumda):
+### Çok dillilik (hreflang)
 
-1. Sitemaps → `sitemap.xml` gönder
-2. URL Denetimi ile birkaç yazıyı test edip "Dizine ekleme talebi" gönder
-3. 1-2 hafta sonra Performans raporunda gösterim sayısına bak
+Sitede 52 İngilizce yazı var, 41'i Türkçe yazıların çevirisi. Çiftler
+`lib/translations.ts` içinde tutuluyor; eşleşmeler kapak görselinin aynı
+olmasından tespit edildi.
+
+Her yazı sayfası şunları üretiyor:
+
+- `<article lang="en">` (kök layout'ta site geneli `tr`, burada düzeltiliyor)
+- Karşılıklı `hreflang` bağlantıları (kendisi + diğer dil + `x-default`)
+- `og:locale` ve JSON-LD `inLanguage` doğru dilde
+- Okuyucuya görünen "Bu yazıyı Türkçe oku" / "Read this article in English" bağlantısı
+- Site haritasında `xhtml:link` alternatifleri
+
+**Kural: hreflang karşılıklı olmalı.** İki sayfa da birbirini ve kendini
+listelemezse Google eşleşmeyi tamamen yok sayar. `dilAlternatifleri()` bunu
+otomatik yapıyor.
+
+Yeni çeviri yayınlarsan `lib/translations.ts` içindeki `CEVIRI_CIFTLERI`
+listesine bir satır ekle. Veritabanı kolonu yerine kodda tutuluyor çünkü liste
+küçük, seyrek değişiyor ve sürüm kontrolünde görünür olması daha iyi.
+
+### Eski adresler
+
+Bir yazının slug'ı değişirse eski adres 404 verir ve Google'da birikmiş değer
+kaybolur. `next.config.ts` içindeki `eskiAdresler` listesine kaynak/hedef
+ekleyerek kalıcı yönlendirme kur.
+
+### Search Console
+
+Site `sc-domain:thecultiva.com` olarak doğrulanmış, `sitemap.xml` gönderildi
+(20 Ağustos 2026, durum Success).
+
+20 Ağustos 2026 başlangıç değerleri (kıyas noktası):
+
+| Ölçüm | Değer |
+|-------|-------|
+| Gösterim (10 gün) | 247 |
+| Tıklama | 1 |
+| CTR | %0.4 |
+| Ortalama sıra | 29.2 |
+| İndekslenmiş sayfa | 253 |
+
+Birkaç sorgu zaten ilk sayfadaydı ama tıklama almıyordu, çünkü arama sonucunda
+yazının başlığı değil site başlığı görünüyordu. Asıl düzeltilen şey buydu.
 
 ---
 
@@ -326,7 +368,6 @@ Search Console'da yapılacaklar (site zaten doğrulanmış durumda):
 - [ ] Yazar sayfalarında biyografi ve fotoğrafı göster (`authors` tablosunda alanlar hazır)
 - [ ] Testleri sosyal medyada paylaşma düğmesi
 - [ ] Mobil görünümü baştan sona gözden geçir
-- [ ] Search Console'a `sitemap.xml` gönder
 - [ ] İçerik görsellerine `alt` metni (editörde alan yok, eklenmeli; görsel aramasından trafik gelir)
 - [ ] Yazı sonuna "ilgili yazılar" bloğu (iç bağlantı, Google'ın site içi gezinmesini kolaylaştırır)
 - [ ] `meta_title` / `meta_description` boş kalan yazıları doldur (özet yeterli ama özel yazılmış olanı daha iyi)
