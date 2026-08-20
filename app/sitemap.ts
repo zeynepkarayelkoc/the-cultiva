@@ -15,9 +15,11 @@ export const revalidate = 86400
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createPublicClient()
 
+  // Dikkat: posts tablosunda updated_at kolonu YOK. İstersek PostgREST
+  // sorgunun tamamını hataya düşürür ve site haritası boş kalır.
   const [yazilar, kategoriler, testler] = await Promise.all([
     supabase.from('posts')
-      .select('slug, created_at, updated_at, author_name')
+      .select('slug, created_at, author_name')
       .eq('published', true)
       .order('created_at', { ascending: false }),
     supabase.from('categories').select('slug').order('sort_order'),
@@ -32,8 +34,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_ADRES}/testler/siralama`, lastModified: bugun, changeFrequency: 'daily', priority: 0.4 },
   ]
 
-  const kategoriSayfalari: MetadataRoute.Sitemap = (kategoriler.data ?? []).map(k => ({
-    url: `${SITE_ADRES}/${k.slug}`,
+  // categories tablosu okunamazsa (RLS) site haritası kategorisiz kalmasın.
+  const VARSAYILAN_KATEGORILER = ['yasam', 'seyahat', 'sanat', 'sinema', 'rehber', 'kitap']
+  const kategoriSluglari = kategoriler.data?.length
+    ? kategoriler.data.map(k => k.slug)
+    : VARSAYILAN_KATEGORILER
+
+  const kategoriSayfalari: MetadataRoute.Sitemap = kategoriSluglari.map(slug => ({
+    url: `${SITE_ADRES}/${slug}`,
     lastModified: bugun,
     changeFrequency: 'daily' as const,
     priority: 0.8,
@@ -41,7 +49,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const yaziSayfalari: MetadataRoute.Sitemap = (yazilar.data ?? []).map(y => ({
     url: `${SITE_ADRES}/yazi/${y.slug}`,
-    lastModified: new Date(y.updated_at ?? y.created_at ?? bugun),
+    lastModified: new Date(y.created_at ?? bugun),
     changeFrequency: 'monthly' as const,
     priority: 0.9,
   }))
