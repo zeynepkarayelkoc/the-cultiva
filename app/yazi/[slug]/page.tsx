@@ -27,19 +27,32 @@ async function yaziGetir(slug: string) {
   return data
 }
 
-// Bu liste olmadan rota tamamen dinamik kalıyor ve hiç önbelleğe alınmıyordu
-// (params request-time API sayılıyor). Hepsini üretmek derlemeyi uzatacağı için
-// en yeni 100 yazıyı önceden üretiyoruz; listede olmayan bir yazı ilk istekte
-// üretilip önbelleğe alınır, çünkü dynamicParams varsayılan olarak açık.
+/*
+  params bir request-time API. generateStaticParams HİÇ yazılmazsa Next.js bu
+  rotayı tamamen dinamik sayar ve sayfadaki "export const revalidate" sessizce
+  hiçbir şey yapmaz. Yani bu fonksiyon önbelleklemenin ön koşulu.
+
+  En yeni 100 yazıyı derlemede üretiyoruz; listede olmayanlar ilk ziyarette
+  üretilip önbelleğe alınıyor (dynamicParams varsayılan olarak açık).
+
+  try/catch şart: bu kod derleme anında çalışıyor ve bir kere Vercel derlemesi
+  "supabaseUrl is required" ile düştü. Veritabanına ya da ortam değişkenlerine
+  ulaşılamadığında derlemeyi komple düşürmek yerine boş liste döndürüyoruz.
+  Boş liste de rotayı ISR'de tutar, sayfalar ilk ziyarette üretilir.
+*/
 export async function generateStaticParams() {
-  const supabase = createPublicClient(0)
-  const { data } = await supabase
-    .from('posts')
-    .select('slug')
-    .eq('published', true)
-    .order('created_at', { ascending: false })
-    .limit(100)
-  return (data ?? []).map(p => ({ slug: p.slug }))
+  try {
+    const supabase = createPublicClient(0)
+    const { data } = await supabase
+      .from('posts')
+      .select('slug')
+      .eq('published', true)
+      .order('created_at', { ascending: false })
+      .limit(100)
+    return (data ?? []).map(p => ({ slug: p.slug }))
+  } catch {
+    return []
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

@@ -367,6 +367,12 @@ ziyarette sıfırdan üretiliyordu (`x-vercel-cache: MISS`). Üç ayrı sebep va
    isteklerine `next: { revalidate }` ekliyor.
 3. Parametreli rotalarda `generateStaticParams` yoktu (yukarıdaki 10. madde).
 
+`generateStaticParams` derleme anında çalışıyor ve veritabanına gidiyor. Bir kere
+Vercel derlemesi "supabaseUrl is required" ile düştü, sonraki denemede aynı kod
+sorunsuz geçti. O yüzden bu fonksiyonlar `try/catch` ile sarılı: hata olursa boş
+liste döndürüp derlemeyi ayakta tutuyorlar. Boş liste de rotayı ISR'de tutar,
+sayfalar ilk ziyarette üretilip önbelleğe alınır.
+
 Şu anki durum:
 
 | Rota | Yenilenme |

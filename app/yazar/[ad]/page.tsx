@@ -21,19 +21,23 @@ async function yazarBul(ad: string): Promise<string | null> {
   return eslesen?.author_name ?? null
 }
 
-// params request-time API olduğu için bu liste olmadan rota hiç önbelleğe
-// alınmıyordu. Yazar sayısı az, hepsini önceden üretmek sorun değil.
+// Önbelleklemenin ön koşulu; ayrıntı için app/yazi/[slug]/page.tsx'teki
+// açıklamaya bak. Hata durumunda boş liste döndürüp derlemeyi ayakta tutuyoruz.
 export async function generateStaticParams() {
-  const supabase = createPublicClient(0)
-  const { data } = await supabase
-    .from('posts')
-    .select('author_name')
-    .eq('published', true)
-    .not('author_name', 'is', null)
-  const sluglar = new Set(
-    (data ?? []).map(p => p.author_name).filter((a): a is string => !!a).map(authorSlug),
-  )
-  return [...sluglar].map(ad => ({ ad }))
+  try {
+    const supabase = createPublicClient(0)
+    const { data } = await supabase
+      .from('posts')
+      .select('author_name')
+      .eq('published', true)
+      .not('author_name', 'is', null)
+    const sluglar = new Set(
+      (data ?? []).map(p => p.author_name).filter((a): a is string => !!a).map(authorSlug),
+    )
+    return [...sluglar].map(ad => ({ ad }))
+  } catch {
+    return []
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ ad: string }> }): Promise<Metadata> {
