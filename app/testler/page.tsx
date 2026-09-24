@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function TestlerPage() {
-  const supabase = createPublicClient()
+  const supabase = createPublicClient(300)
   const { data: quizzes } = await supabase
     .from('quizzes')
     .select('id,slug,title,description,cover_url,type,category,play_count')

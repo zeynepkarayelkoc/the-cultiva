@@ -1,6 +1,6 @@
 export const revalidate = 300
 
-import { createPublicClient } from '@/lib/supabase/public'
+import { createPublicClient, YAZI_LISTE_ALANLARI } from '@/lib/supabase/public'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
@@ -22,6 +22,13 @@ const kategoriAciklama: Record<string, string> = {
   kitap: 'Kitaplar, yazarlar ve okuma notları. Ne okumalı sorusuna verilmiş uzun cevaplar.',
 }
 
+// params bir request-time API. generateStaticParams olmadan Next.js bu rotayı
+// önceden üretemiyor ve sayfa her ziyarette sıfırdan render ediliyordu.
+// Bu liste sayesinde rota ISR'e dahil oluyor ve revalidate gerçekten çalışıyor.
+export function generateStaticParams() {
+  return valid.map(kategori => ({ kategori }))
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ kategori: string }> }): Promise<Metadata> {
   const { kategori } = await params
   if (!valid.includes(kategori)) return { title: 'Sayfa bulunamadı' }
@@ -38,10 +45,10 @@ export default async function KategoriPage({ params }: { params: Promise<{ kateg
   const { kategori } = await params
   if (!valid.includes(kategori)) notFound()
 
-  const supabase = createPublicClient()
+  const supabase = createPublicClient(300)
   const { data: posts } = await supabase
     .from('posts')
-    .select('*')
+    .select(YAZI_LISTE_ALANLARI)
     .eq('published', true)
     .eq('category', kategori)
     .order('created_at', { ascending: false })

@@ -1,7 +1,12 @@
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public'
 
 // Panelden yönetilen site ayarları. site_settings tablosu anahtar/değer
 // biçiminde olduğu için yeni bir ayar eklemek migration gerektirmez.
+//
+// DİKKAT: burada çerez okuyan istemciyi (lib/supabase/server) kullanma.
+// Bu fonksiyon sayfaMetadata() üzerinden sitedeki HER sayfada çağrılıyor.
+// Çereze dokunan bir sorgu rotayı zorla dinamik yapar; bir dönem öyleydi ve
+// sitenin tamamı önbelleksiz çalışıyordu. Ayarlar zaten herkese açık veri.
 
 export const AYAR_VARSAYILAN = {
   site_title: 'The Cultiva yaşam, sanat & seyahat',
@@ -15,7 +20,8 @@ export type AyarAnahtari = keyof typeof AYAR_VARSAYILAN
 export async function siteAyarlari(): Promise<Record<AyarAnahtari, string>> {
   const sonuc = { ...AYAR_VARSAYILAN } as Record<AyarAnahtari, string>
   try {
-    const supabase = await createClient()
+    // Ayarlar seyrek değişiyor, 5 dakikalık önbellek fazlasıyla yeterli.
+    const supabase = createPublicClient(300)
     const { data } = await supabase
       .from('site_settings')
       .select('key,value')

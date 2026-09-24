@@ -93,7 +93,10 @@ the-cultiva/
 │   ├── AdBanner.tsx                  # AdSense alanı
 │   └── WelcomeScreen.tsx             # Açılış ekranı
 ├── lib/
-│   ├── supabase/{client,server}.ts   # Supabase istemcileri (tarayıcı / sunucu)
+│   ├── supabase/{client,server}.ts   # Supabase istemcileri (tarayıcı / oturumlu sunucu)
+│   ├── supabase/public.ts            # Çerezsiz + önbellekli okuma istemcisi ← okuyucu sayfaları
+│   ├── seo.ts                        # Sayfa metadata'sı, canonical, JSON-LD şemaları
+│   ├── translations.ts               # TR/EN çeviri çiftleri, hreflang
 │   ├── adminTheme.ts                 # Panelin açık tema paleti ve ortak stiller
 │   ├── quiz.ts                       # Test tipleri, puanlama, sonuç seçimi
 │   ├── coverUrl.ts                   # Kapak görseli çözümü + kategori yedeği
@@ -254,7 +257,24 @@ Bunlar geçmişte zaman kaybettiren, tekrar karşılaşılabilecek konular:
    `export const revalidate` hiçbir işe yaramıyor. Herkese açık okuma yapan
    sayfalarda `lib/supabase/public.ts` kullanılmalı.
 
-9. **Punto değiştirme `<font>` üzerinden çalışır.** `execCommand('fontSize')` yalnızca
+9. **Site haritasında `revalidate` çalışmaz.** `app/sitemap.ts` bir metadata
+   rotası; Next.js onu derleme anında statik dosyaya çeviriyor ve `revalidate`
+   bu rotada geçersiz. Bir dönem `revalidate = 86400` yazılıydı ve site haritası
+   20 Ağustos'tan 24 Eylül'e kadar dondu: panelden eklenen 13 test hiç içine
+   girmedi, Google onları göremedi. Çözüm `export const dynamic = 'force-dynamic'`.
+
+10. **`params` request-time API'dir.** `/yazi/[slug]` gibi parametreli bir rotaya
+    `generateStaticParams` yazmazsan Next.js onu hiç önbelleğe almaz; sayfadaki
+    `export const revalidate` sessizce hiçbir şey yapmaz. Derleme çıktısında
+    `ƒ` işareti ve `.next/prerender-manifest.json` içinde boş `dynamicRoutes`
+    bunun işaretidir.
+
+11. **Liste sayfalarında `select('*')` kullanma.** 502 yazının tam metni 3,5 MB.
+    Bu hem her sayfa yüklemesinde boşuna aktarılıyordu hem de Next'in veri
+    önbelleği girdi başına boyut sınırına takılıyordu. `YAZI_LISTE_ALANLARI`
+    sabitini kullan: aynı veri 283 KB.
+
+12. **Punto değiştirme `<font>` üzerinden çalışır.** `execCommand('fontSize')` yalnızca
    1-7 arası değer kabul ettiği için önce 7 ile işaretlenip üretilen `<font size="7">`
    etiketleri kendi `<span style="font-size:…">`imizle değiştiriliyor. execCommand
    kullanımdan kalkmış sayılır ama contenteditable için hâlâ en pratik yol.
@@ -333,6 +353,34 @@ otomatik yapıyor.
 Yeni çeviri yayınlarsan `lib/translations.ts` içindeki `CEVIRI_CIFTLERI`
 listesine bir satır ekle. Veritabanı kolonu yerine kodda tutuluyor çünkü liste
 küçük, seyrek değişiyor ve sürüm kontrolünde görünür olması daha iyi.
+
+### Önbellekleme
+
+Eylül 2026'ya kadar sitedeki **hiçbir sayfa önbelleğe alınmıyordu**; hepsi her
+ziyarette sıfırdan üretiliyordu (`x-vercel-cache: MISS`). Üç ayrı sebep vardı:
+
+1. `siteAyarlari()` çerez okuyan istemciyi kullanıyordu. Bu fonksiyon
+   `sayfaMetadata()` üzerinden **her sayfada** çağrılıyor; çereze dokunan rota
+   zorunlu dinamik olur. Artık `lib/supabase/public.ts` kullanıyor.
+2. Next.js 15'ten beri `fetch` varsayılan olarak önbelleğe alınmıyor. Artık
+   `createPublicClient(saniye)` supabase-js'e kendi fetch'ini veriyor ve GET
+   isteklerine `next: { revalidate }` ekliyor.
+3. Parametreli rotalarda `generateStaticParams` yoktu (yukarıdaki 10. madde).
+
+Şu anki durum:
+
+| Rota | Yenilenme |
+|------|-----------|
+| `/` | 2 dakika |
+| `/[kategori]`, `/yazar/[ad]`, `/yazi/[slug]`, `/testler` | 5 dakika |
+| `/sitemap.xml` | her istekte taze (dinamik) |
+| `/test/[slug]`, `/testler/siralama`, `/panel`, `/admin` | dinamik (bilinçli) |
+
+`/test/[slug]` dinamik çünkü her görüntülemede `play_count` artırıyor. Test
+sayfaları aramada iyi iş çıkarıyor, hızlanmasını istersen sayacı istemci
+tarafına taşımak gerekir.
+
+Panelden bir ayar değiştirdiğinde sitede görünmesi 5 dakikayı bulabilir.
 
 ### Eski adresler
 

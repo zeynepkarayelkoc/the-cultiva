@@ -17,7 +17,7 @@ import { yaziDili, ceviriSlug, dilAlternatifleri } from '@/lib/translations'
 const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', sinema: 'sinema', rehber: 'rehber', kitap: 'kitap' }
 
 async function yaziGetir(slug: string) {
-  const supabase = createPublicClient()
+  const supabase = createPublicClient(300)
   const { data } = await supabase
     .from('posts')
     .select('*')
@@ -25,6 +25,21 @@ async function yaziGetir(slug: string) {
     .eq('published', true)
     .single()
   return data
+}
+
+// Bu liste olmadan rota tamamen dinamik kalıyor ve hiç önbelleğe alınmıyordu
+// (params request-time API sayılıyor). Hepsini üretmek derlemeyi uzatacağı için
+// en yeni 100 yazıyı önceden üretiyoruz; listede olmayan bir yazı ilk istekte
+// üretilip önbelleğe alınır, çünkü dynamicParams varsayılan olarak açık.
+export async function generateStaticParams() {
+  const supabase = createPublicClient(0)
+  const { data } = await supabase
+    .from('posts')
+    .select('slug')
+    .eq('published', true)
+    .order('created_at', { ascending: false })
+    .limit(100)
+  return (data ?? []).map(p => ({ slug: p.slug }))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

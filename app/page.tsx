@@ -1,7 +1,7 @@
 // Ana sayfa sık değişiyor ama her ziyarette sıfırdan üretilmesi gerekmiyor.
 export const revalidate = 120
 
-import { createPublicClient } from '@/lib/supabase/public'
+import { createPublicClient, YAZI_LISTE_ALANLARI } from '@/lib/supabase/public'
 import { coverUrl } from '@/lib/coverUrl'
 import Link from 'next/link'
 import type { Metadata } from 'next'
@@ -37,12 +37,12 @@ const editorialCats = [
 ]
 
 export default async function Home() {
-  const supabase = createPublicClient()
+  const supabase = createPublicClient(120)
   // Yapısal veri de panelden yönetilen başlık/açıklamayı kullansın
   const ayar = await siteAyarlari()
   const { data: posts } = await supabase
     .from('posts')
-    .select('*')
+    .select(YAZI_LISTE_ALANLARI)
     .eq('published', true)
     .order('created_at', { ascending: false })
 
@@ -50,7 +50,7 @@ export default async function Home() {
   const [{ data: featuredPosts }, { data: sliderSetting }] = await Promise.all([
     supabase
       .from('posts')
-      .select('*')
+      .select(YAZI_LISTE_ALANLARI)
       .eq('published', true)
       .eq('featured', true)
       .order('featured_order', { ascending: true })

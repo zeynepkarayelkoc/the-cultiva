@@ -23,7 +23,8 @@ import { dilAlternatifleri } from '@/lib/translations'
 export const dynamic = 'force-dynamic'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = createPublicClient()
+  // 0 = önbelleksiz. Site haritası her zaman güncel içeriği göstermeli.
+  const supabase = createPublicClient(0)
 
   // Dikkat: posts tablosunda updated_at kolonu YOK. İstersek PostgREST
   // sorgunun tamamını hataya düşürür ve site haritası boş kalır.

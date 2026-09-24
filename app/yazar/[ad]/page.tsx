@@ -1,6 +1,6 @@
 export const revalidate = 300
 
-import { createPublicClient } from '@/lib/supabase/public'
+import { createPublicClient, YAZI_LISTE_ALANLARI } from '@/lib/supabase/public'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
@@ -11,7 +11,7 @@ import { sayfaMetadata } from '@/lib/seo'
 // Bir yazarın adını slug'ından bul. Yazar tablosu değil yazılar üzerinden
 // bakıyoruz, çünkü author_name yazının kendisinde tutuluyor.
 async function yazarBul(ad: string): Promise<string | null> {
-  const supabase = createPublicClient()
+  const supabase = createPublicClient(300)
   const { data } = await supabase
     .from('posts')
     .select('author_name')
@@ -19,6 +19,21 @@ async function yazarBul(ad: string): Promise<string | null> {
     .not('author_name', 'is', null)
   const eslesen = (data ?? []).find(p => p.author_name && authorSlug(p.author_name) === ad)
   return eslesen?.author_name ?? null
+}
+
+// params request-time API olduğu için bu liste olmadan rota hiç önbelleğe
+// alınmıyordu. Yazar sayısı az, hepsini önceden üretmek sorun değil.
+export async function generateStaticParams() {
+  const supabase = createPublicClient(0)
+  const { data } = await supabase
+    .from('posts')
+    .select('author_name')
+    .eq('published', true)
+    .not('author_name', 'is', null)
+  const sluglar = new Set(
+    (data ?? []).map(p => p.author_name).filter((a): a is string => !!a).map(authorSlug),
+  )
+  return [...sluglar].map(ad => ({ ad }))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ ad: string }> }): Promise<Metadata> {
@@ -37,11 +52,11 @@ const colors: Record<string, string> = { yasam: '#8b2635', seyahat: '#1e3a5f', s
 
 export default async function YazarPage({ params }: { params: Promise<{ ad: string }> }) {
   const { ad } = await params
-  const supabase = createPublicClient()
+  const supabase = createPublicClient(300)
 
   const { data: posts } = await supabase
     .from('posts')
-    .select('*')
+    .select(YAZI_LISTE_ALANLARI)
     .eq('published', true)
     .not('author_name', 'is', null)
     .order('created_at', { ascending: false })

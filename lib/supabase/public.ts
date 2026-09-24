@@ -3,22 +3,58 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 /*
   Çerez okumayan, herkese açık okuma istemcisi.
 
-  Neden ayrı bir istemci: lib/supabase/server.ts içindeki createClient()
-  next/headers'tan cookies() çağırıyor. Bir sayfa cookies()'e dokunduğu anda
-  Next.js o rotayı zorunlu olarak dinamik render ediyor ve "export const
-  revalidate" hiçbir işe yaramıyor. Yani her ziyaretçi için sayfa sıfırdan
-  üretiliyor, önbellek devre dışı kalıyor.
+  İki ayrı sorunu birden çözüyor:
 
-  Yazı, kategori, yazar ve test listesi sayfaları oturum bilgisine ihtiyaç
-  duymuyor; sadece yayınlanmış içeriği okuyorlar. Bu istemciyle onlar
-  gerçekten önbelleğe alınabiliyor, sayfa hızı ve Core Web Vitals düzeliyor.
+  1) lib/supabase/server.ts içindeki createClient() next/headers'tan cookies()
+     çağırıyor. Bir rota çereze dokunduğu anda Next.js onu zorunlu dinamik
+     yapıyor; sayfa her ziyarette sıfırdan üretiliyor.
 
-  Oturum gereken yerlerde (admin, panel, test çözme) eski istemci kullanılmalı.
+  2) Next.js 15'ten beri fetch varsayılan olarak ÖNBELLEĞE ALINMIYOR. Yani
+     istemci çereze dokunmasa bile, sorgular önbelleksiz sayıldığı için sayfa
+     yine dinamik kalıyordu. Bu yüzden sayfalara yazdığımız
+     "export const revalidate" hiçbir işe yaramıyordu.
+
+  Çözüm: supabase-js'e kendi fetch'imizi veriyoruz ve GET isteklerine Next'in
+  veri önbelleği için "next: { revalidate }" ekliyoruz.
+
+  saniye = 0 verilirse önbellek kapalı olur (site haritası gibi her zaman taze
+  olması gereken yerler için).
+
+  Not: fetch önbelleğinin girdi başına boyut sınırı var. Liste sayfalarında
+  select('*') yerine YAZI_LISTE_ALANLARI kullan, yoksa yanıt sınırı aşar ve
+  sessizce önbelleğe alınmaz.
 */
-export function createPublicClient() {
+
+/** Liste ve kart görünümlerinin ihtiyaç duyduğu kolonlar.
+ *  content kolonu kasıtlı olarak yok: 502 yazının tam metni 3,5 MB tutuyor. */
+export const YAZI_LISTE_ALANLARI =
+  'id, slug, title, excerpt, cover_url, category, read_time, created_at, author_name'
+
+/** Veritabanı cevap vermezse sonsuza kadar bekleme. Derleme sırasında
+ *  generateStaticParams bu sorguları çağırıyor; takılırsa build hiç bitmez. */
+const ZAMAN_ASIMI_MS = 10_000
+
+export function createPublicClient(saniye = 0) {
+  const onbellekliFetch: typeof fetch = (girdi, ayar) => {
+    const yontem = (ayar?.method ?? 'GET').toUpperCase()
+    const eklenecek: RequestInit = { ...ayar }
+
+    // Çağıran kendi iptal sinyalini verdiyse ona dokunma
+    if (!eklenecek.signal) eklenecek.signal = AbortSignal.timeout(ZAMAN_ASIMI_MS)
+
+    // Yalnızca okuma isteklerini önbelleğe al
+    if (saniye > 0 && yontem === 'GET') {
+      return fetch(girdi, { ...eklenecek, next: { revalidate: saniye } })
+    }
+    return fetch(girdi, eklenecek)
+  }
+
   return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { auth: { persistSession: false, autoRefreshToken: false } },
+    {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { fetch: onbellekliFetch },
+    },
   )
 }
