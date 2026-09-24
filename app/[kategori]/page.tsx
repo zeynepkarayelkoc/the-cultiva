@@ -22,11 +22,12 @@ const kategoriAciklama: Record<string, string> = {
   kitap: 'Kitaplar, yazarlar ve okuma notları. Ne okumalı sorusuna verilmiş uzun cevaplar.',
 }
 
-// params bir request-time API. generateStaticParams olmadan Next.js bu rotayı
-// önceden üretemiyor ve sayfa her ziyarette sıfırdan render ediliyordu.
-// Bu liste sayesinde rota ISR'e dahil oluyor ve revalidate gerçekten çalışıyor.
+// Boş dizi döndürmek kasıtlı. params bir request-time API olduğu için bu
+// fonksiyon hiç olmazsa rota önbelleğe alınmaz; boş dizi ise rotayı ISR'de
+// tutup sayfaları ilk ziyarette üretip önbelleğe almayı sağlıyor.
+// Derlemede üretmiyoruz ki build veritabanına bağımlı olmasın.
 export function generateStaticParams() {
-  return valid.map(kategori => ({ kategori }))
+  return []
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ kategori: string }> }): Promise<Metadata> {

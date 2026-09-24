@@ -34,7 +34,29 @@ export const YAZI_LISTE_ALANLARI =
  *  generateStaticParams bu sorguları çağırıyor; takılırsa build hiç bitmez. */
 const ZAMAN_ASIMI_MS = 10_000
 
+/*
+  Ortam değişkeni yoksa supabase-js'in verdiği "supabaseUrl is required" mesajı
+  sorunun nerede olduğunu söylemiyor. Bunun yerine derleme kaydında o an hangi
+  NEXT_PUBLIC_ değişkenlerinin görünür olduğunu yazdırıyoruz; "hiçbiri yok" ile
+  "sadece bu biri eksik" çok farklı iki sorun.
+*/
+function ortamHatasi(): never {
+  const gorunen = Object.keys(process.env).filter(k => k.startsWith('NEXT_PUBLIC_'))
+  throw new Error(
+    'Supabase ortam degiskenleri okunamadi. ' +
+    `NEXT_PUBLIC_SUPABASE_URL=${process.env.NEXT_PUBLIC_SUPABASE_URL ? 'var' : 'YOK'}, ` +
+    `NEXT_PUBLIC_SUPABASE_ANON_KEY=${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'var' : 'YOK'}. ` +
+    `Su anda gorunen NEXT_PUBLIC_ degiskenleri: [${gorunen.join(', ') || 'hicbiri'}]. ` +
+    `Toplam ortam degiskeni sayisi: ${Object.keys(process.env).length}. ` +
+    'Derleme sirasinda goruluyorsa Vercel > Settings > Environment Variables ayarina bak.',
+  )
+}
+
 export function createPublicClient(saniye = 0) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anahtar = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !anahtar) ortamHatasi()
+
   const onbellekliFetch: typeof fetch = (girdi, ayar) => {
     const yontem = (ayar?.method ?? 'GET').toUpperCase()
     const eklenecek: RequestInit = { ...ayar }
@@ -50,8 +72,8 @@ export function createPublicClient(saniye = 0) {
   }
 
   return createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    anahtar,
     {
       auth: { persistSession: false, autoRefreshToken: false },
       global: { fetch: onbellekliFetch },
