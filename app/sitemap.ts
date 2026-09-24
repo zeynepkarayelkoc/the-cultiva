@@ -5,13 +5,22 @@ import { SITE_ADRES } from '@/lib/seo'
 import { dilAlternatifleri } from '@/lib/translations'
 
 /*
-  Site haritası. Google'ın 510 yazıyı tek tek keşfetmesini beklemek yerine
-  hepsini tek listede veriyoruz. Search Console'a bu adresi eklemek gerekiyor:
+  Site haritası. Google'ın bütün yazıları tek tek keşfetmesini beklemek yerine
+  hepsini tek listede veriyoruz. Search Console'a bu adres gönderildi:
   https://www.thecultiva.com/sitemap.xml
 
-  Günde bir yenilenmesi yeterli, her istekte veritabanını taramasın.
+  DİKKAT - burada "export const revalidate" KULLANMA.
+
+  sitemap.ts bir metadata rotası ve Next.js bunu derleme anında statik dosyaya
+  çeviriyor. revalidate bu rotada çalışmıyor: dosya yalnızca yeni bir deploy
+  yapıldığında değişiyor. Bir dönem revalidate = 86400 yazılıydı ve site haritası
+  haftalarca donup kaldı; panelden eklenen yeni testler ve yazılar içine hiç
+  girmedi, dolayısıyla Google onları göremedi.
+
+  Metadata rotasını taze tutmanın yolu dinamik yapmak. Site haritasını yalnızca
+  arama motoru tarayıcıları çağırdığı için istek başına birkaç sorgu sorun değil.
 */
-export const revalidate = 86400
+export const dynamic = 'force-dynamic'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createPublicClient()
