@@ -378,15 +378,40 @@ sayfalar ilk ziyarette üretilip önbelleğe alınır.
 | Rota | Yenilenme |
 |------|-----------|
 | `/` | 2 dakika |
-| `/[kategori]`, `/yazar/[ad]`, `/yazi/[slug]`, `/testler` | 5 dakika |
+| `/[kategori]`, `/yazar/[ad]`, `/yazi/[slug]`, `/testler`, `/test/[slug]` | 5 dakika |
 | `/sitemap.xml` | her istekte taze (dinamik) |
-| `/test/[slug]`, `/testler/siralama`, `/panel`, `/admin` | dinamik (bilinçli) |
+| `/testler/siralama`, `/panel`, `/admin` | dinamik (bilinçli) |
 
-`/test/[slug]` dinamik çünkü her görüntülemede `play_count` artırıyor. Test
-sayfaları aramada iyi iş çıkarıyor, hızlanmasını istersen sayacı istemci
-tarafına taşımak gerekir.
+`/test/[slug]` bir dönem dinamikti çünkü her görüntülemede `play_count`
+artırıyordu. Sayaç `/api/test-cozuldu` rotasına taşındı; hem sayfa önbelleğe
+alınabilir oldu hem sayaç düzeldi. Eskiden `quizzes` tablosuna yazma yetkisi
+sadece adminde olduğu için sayaç gerçek ziyaretçilerde hiç artmıyordu. Artık
+"sayfayı açan" değil "teste başlayan" sayılıyor.
+
+Aynı sayfadaki oturum kontrolü de istemciye taşındı (`QuizPlayer` içinde),
+çünkü sunucuda oturum okumak çerez okumak demek ve önbeklemeyi engelliyordu.
 
 Panelden bir ayar değiştirdiğinde sitede görünmesi 5 dakikayı bulabilir.
+
+### Test sayfalarının içeriği
+
+Test sayfalarında bir dönem yalnızca başlık, tek cümlelik açıklama ve "Teste
+başla" düğmesi vardı: 33 kelime. Buna rağmen "hangi friends karakterisin"
+sorgusu sitenin bütün gösteriminin %12'siydi ama sayfa 9. sırada kalıyordu,
+çünkü Google'ın değerlendireceği içerik yoktu.
+
+`components/TestSayfaIcerik.tsx` testin altına şunları ekliyor:
+
+- Sonuç tipleri (kişilik testinde karakterler, bilgi testinde rozetler)
+- Sık sorulanlar
+- Diğer testlere bağlantı (iç bağlantı için de değerli)
+
+Metinlerin tamamı veritabanındaki mevcut veriden üretiliyor, elle içerik
+girilmiyor. Yeni bir test yayınladığında bu bölüm kendiliğinden doluyor.
+
+SSS metni hem ekranda hem JSON-LD `FAQPage` şemasında kullanılıyor ve ikisi de
+`sikSorulanlar()` fonksiyonundan geliyor. Ayrışırlarsa Google yapısal veriyi
+reddeder, o yüzden tek kaynaktan üretiliyor.
 
 ### Eski adresler
 
