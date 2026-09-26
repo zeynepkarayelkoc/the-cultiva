@@ -8,7 +8,17 @@ import {
 
 type Durum = 'giris' | 'soru' | 'sonuc'
 
-export default function QuizPlayer({ quiz, girisYapti }: { quiz: Quiz; girisYapti: boolean }) {
+export default function QuizPlayer({ quiz }: { quiz: Quiz }) {
+  /*
+    Oturum kontrolü burada, istemcide yapılıyor. Eskiden sunucu tarafında
+    yapılıp prop olarak geliyordu ama oturum okumak çerez okumak demek ve
+    çereze dokunan bir sayfa Next.js'te zorunlu dinamik oluyor; test sayfaları
+    bu yüzden hiç önbelleğe alınamıyordu.
+
+    null = henüz bilinmiyor. Bilinmeden "giriş yap" uyarısı göstermiyoruz,
+    yoksa giriş yapmış kullanıcıya bir an yanlış mesaj görünür.
+  */
+  const [girisYapti, setGirisYapti] = useState<boolean | null>(null)
   const supabase = createClient()
   const sorular = [...quiz.quiz_questions].sort((a, b) => a.position - b.position)
   const bilgi = quiz.type === 'bilgi'
@@ -25,9 +35,23 @@ export default function QuizPlayer({ quiz, girisYapti }: { quiz: Quiz; girisYapt
 
   useEffect(() => () => { if (sayacRef.current) clearInterval(sayacRef.current) }, [])
 
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setGirisYapti(!!data.user))
+  }, [])
+
   const basla = () => {
     setDurum('soru'); setI(0); setDogru(0); setAnahtarlar([]); setSecili(null); setSaniye(0)
     sayacRef.current = setInterval(() => setSaniye(s => s + 1), 1000)
+
+    // Çözülme sayacı. Eskiden sayfa render'ında artıyordu ama quizzes tablosuna
+    // yazma yetkisi sadece adminde olduğu için gerçek ziyaretçilerde hiç
+    // çalışmıyordu. Artık servis anahtarlı API rotası artırıyor.
+    // Sayaç kritik değil, hata olursa test akışı etkilenmesin.
+    fetch('/api/test-cozuldu', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug: quiz.slug }),
+    }).catch(() => {})
   }
 
   const soru = sorular[i]
@@ -127,7 +151,7 @@ export default function QuizPlayer({ quiz, girisYapti }: { quiz: Quiz; girisYapt
           <span>{quiz.play_count.toLocaleString('tr-TR')} kişi çözdü</span>
         </div>
         <button onClick={basla} style={anaBtn}>Teste başla</button>
-        {!girisYapti && (
+        {girisYapti === false && (
           <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: '1rem' }}>
             Puanının kaydedilmesi ve sıralamaya girmek için{' '}
             <Link href="/giris" style={{ color: 'var(--terra)' }}>giriş yap</Link>.
@@ -277,7 +301,7 @@ export default function QuizPlayer({ quiz, girisYapti }: { quiz: Quiz; girisYapt
       </div>
 
       <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: '1.2rem' }}>
-        {!girisYapti
+        {girisYapti === false
           ? bilgi
             ? <>Puanın kaydedilmedi. <Link href="/giris" style={{ color: 'var(--terra)' }}>Giriş yap</Link>, sıralamaya gir.</>
             : <>Sonucun kaydedilmedi. <Link href="/giris" style={{ color: 'var(--terra)' }}>Giriş yap</Link>, profilinde biriksin.</>
