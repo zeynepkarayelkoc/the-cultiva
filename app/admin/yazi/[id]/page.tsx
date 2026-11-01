@@ -26,6 +26,10 @@ export default function YaziDuzenle() {
   const [success, setSuccess]   = useState('')
   const [preview, setPreview]   = useState(false)
   const [contentHtml, setContentHtml] = useState('')
+  // SEO alanları. Bir dönem yalnızca "yeni yazı" sayfasında vardı; mevcut
+  // yazıların Google'daki başlığını değiştirmenin bir yolu yoktu.
+  const [metaTitle, setMetaTitle]     = useState('')
+  const [metaDesc, setMetaDesc]       = useState('')
   const editorRef    = useRef<HTMLDivElement>(null)
   const coverFileRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
@@ -42,6 +46,8 @@ export default function YaziDuzenle() {
       setPublished(data.published ?? false)
       setCoverUrl(data.cover_url ?? '')
       setAuthorName(data.author_name ?? '')
+      setMetaTitle(data.meta_title ?? '')
+      setMetaDesc(data.meta_description ?? '')
       setContentHtml(data.content ?? '')
       setLoading(false)
     })
@@ -92,6 +98,8 @@ export default function YaziDuzenle() {
       content: editorHtml,
       category, read_time: readTime, published,
       author_name: authorName || null,
+      meta_title: metaTitle.trim() || null,
+      meta_description: metaDesc.trim() || null,
     }).eq('id', id)
     if (err) setError(err.message)
     else setSuccess('Kaydedildi ✓')
@@ -180,6 +188,27 @@ export default function YaziDuzenle() {
             <label style={lbl}>özet</label>
             <textarea value={excerpt} onChange={e => setExcerpt(e.target.value)} rows={2} style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }} />
           </div>
+
+          {/* SEO: Google'da görünen başlık ve açıklama. Boş bırakılırsa yazı başlığı ve özet kullanılır. */}
+          <details style={{ marginBottom: '1.5rem' }} open={!!(metaTitle || metaDesc)}>
+            <summary style={{ ...lbl, cursor: 'pointer', userSelect: 'none' }}>
+              ▸ SEO ayarları <span style={{ textTransform: 'none', letterSpacing: 0 }}>(boş bırakırsan başlık ve özet kullanılır)</span>
+            </summary>
+            <div style={{ paddingTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div>
+                <label style={lbl}>meta başlık (Google&apos;da görünen)</label>
+                <input value={metaTitle} onChange={e => setMetaTitle(e.target.value)} placeholder={title} maxLength={70} style={inp} />
+                <div style={{ fontSize: '0.62rem', color: metaTitle.length > 60 ? '#b03030' : '#a89c8c', marginTop: 3 }}>
+                  {metaTitle.length}/60 · insanların aradığı kelimeyle başlamaya çalış
+                </div>
+              </div>
+              <div>
+                <label style={lbl}>meta açıklama</label>
+                <textarea value={metaDesc} onChange={e => setMetaDesc(e.target.value)} placeholder={excerpt} maxLength={170} rows={2} style={{ ...inp, resize: 'vertical' }} />
+                <div style={{ fontSize: '0.62rem', color: metaDesc.length > 158 ? '#b03030' : '#a89c8c', marginTop: 3 }}>{metaDesc.length}/158</div>
+              </div>
+            </div>
+          </details>
 
           {/* Kapak görseli */}
           <div style={{ marginBottom: '2rem' }}>
