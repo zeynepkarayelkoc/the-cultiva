@@ -76,7 +76,7 @@ const GUNCELLEMELER = [
   {
     slug: 'yeniden-sekillendirilmis-tanrica-kirke',
     meta_title: 'Kirke Kimdir? Mitolojide Kirke ve Odysseus',
-    meta_description: 'Yunan mitolojisinde Kirke kimdir, Odysseus\'un adamlarını neden domuza çevirdi? Cadı tanrıçanın hikayesi ve Madeline Miller\'ın Ben, Kirke romanıyla yeniden doğuşu.',
+    meta_description: 'Yunan mitolojisinde Kirke kimdir, Odysseus\'un adamlarını neden domuza çevirdi? Cadı tanrıçanın hikayesi ve Ben, Kirke romanıyla yeniden doğuşu.',
     ek_anahtar: 'kirke-sss',
     ek_html:
       '<h2>Kısaca: Kirke kimdir?</h2>\n' +
