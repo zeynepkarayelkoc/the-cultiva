@@ -102,7 +102,14 @@ export default function YaziDuzenle() {
       meta_description: metaDesc.trim() || null,
     }).eq('id', id)
     if (err) setError(err.message)
-    else setSuccess('Kaydedildi ✓')
+    else {
+      setSuccess('Kaydedildi ✓')
+      // Yazının ve kategorisinin önbelleğini hemen temizle (bkz. app/api/yenile).
+      fetch('/api/yenile', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ yollar: [`/yazi/${slug}`, `/${category}`] }),
+      }).catch(() => {})
+    }
     setSaving(false)
   }
 

@@ -163,6 +163,11 @@ export default function YeniYaziPage() {
       const { error: err } = await supabase.from('posts').insert(postData)
       if (err) { setError(err.message); setLoading(false); return }
     }
+    // Önbelleği temizle: slug daha önce ziyaret edildiyse 404 olarak kalmış olabilir.
+    await fetch('/api/yenile', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ yollar: [`/yazi/${postData.slug}`, `/${postData.category}`] }),
+    }).catch(() => {})
     router.push('/admin')
   }
 
