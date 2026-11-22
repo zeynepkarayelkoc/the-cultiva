@@ -234,6 +234,11 @@ export default function TestEditor({
 
     setKaydediliyor(false)
     setMsg('Kaydedildi.')
+    // Eski ve yeni adresin önbelleğini hemen temizle (bkz. app/api/yenile).
+    fetch('/api/yenile', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ yollar: [...new Set([`/test/${quiz.slug}`, `/test/${slug.trim()}`])] }),
+    }).catch(() => {})
     router.refresh()
   }
 

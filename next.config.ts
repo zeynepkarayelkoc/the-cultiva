@@ -12,6 +12,8 @@ import type { NextConfig } from 'next'
 const eskiAdresler = [
   // Google'ın arama sonuçlarında hâlâ tuttuğu, artık var olmayan adres
   { kaynak: '/yazi/medusa-symbolism-in-art', hedef: '/yazi/medusas-revenge' },
+  // Kasım 2026: kötü karakterli sürüm, Google'da sıralanan eski adrese taşındı.
+  { kaynak: '/test/tasacak-bu-deniz-de-hangi-karaktersin', hedef: '/test/hangi-tasacak-bu-deniz-karakterisin' },
 ]
 
 const nextConfig: NextConfig = {
