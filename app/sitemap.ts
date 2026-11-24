@@ -26,13 +26,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 0 = önbelleksiz. Site haritası her zaman güncel içeriği göstermeli.
   const supabase = createPublicClient(0)
 
-  // Dikkat: posts tablosunda updated_at kolonu YOK. İstersek PostgREST
-  // sorgunun tamamını hataya düşürür ve site haritası boş kalır.
-  const [yazilar, kategoriler, testler] = await Promise.all([
-    supabase.from('posts')
+  // updated_at Kasım 2026'da eklendi (updated-at-ekle.sql). Kolon yoksa PostgREST
+  // sorgunun tamamını hataya düşürür ve site haritası boş kalır; o yüzden
+  // hata olursa updated_at'siz sorguya geri düşüyoruz.
+  const yaziSorgusu = async (): Promise<{ data: { slug: string; created_at: string | null; updated_at?: string | null; author_name: string | null }[] | null }> => {
+    const ilk = await supabase.from('posts')
+      .select('slug, created_at, updated_at, author_name')
+      .eq('published', true)
+      .order('created_at', { ascending: false })
+    if (!ilk.error) return ilk
+    return supabase.from('posts')
       .select('slug, created_at, author_name')
       .eq('published', true)
-      .order('created_at', { ascending: false }),
+      .order('created_at', { ascending: false })
+  }
+  const [yazilar, kategoriler, testler] = await Promise.all([
+    yaziSorgusu(),
     supabase.from('categories').select('slug').order('sort_order'),
     supabase.from('quizzes').select('slug, created_at').eq('published', true),
   ])
@@ -64,7 +73,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const alternatifler = dilAlternatifleri(y.slug)
     return {
       url: `${SITE_ADRES}/yazi/${y.slug}`,
-      lastModified: new Date(y.created_at ?? bugun),
+      lastModified: new Date(y.updated_at ?? y.created_at ?? bugun),
       changeFrequency: 'monthly' as const,
       priority: 0.9,
       ...(alternatifler

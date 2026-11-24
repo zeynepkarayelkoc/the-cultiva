@@ -169,6 +169,15 @@ export default async function YaziPage({ params }: { params: Promise<{ slug: str
           <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
             {new Date(post.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
           </span>
+          {/* Yayından en az 3 gün sonra içerik değiştiyse güncelleme tarihini de göster. */}
+          {post.updated_at && new Date(post.updated_at).getTime() - new Date(post.created_at).getTime() > 3 * 86400000 && (
+            <>
+              <span style={{ color: 'var(--border)' }}>·</span>
+              <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
+                Güncellendi: {new Date(post.updated_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </span>
+            </>
+          )}
           <span style={{ color: 'var(--border)' }}>·</span>
           <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>{post.read_time} dk okuma</span>
         </div>
