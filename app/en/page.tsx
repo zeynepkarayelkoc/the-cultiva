@@ -15,7 +15,10 @@ const BASLIK = 'The Cultiva: Art, Myth and Culture Explained'
 const ACIKLAMA = 'Clear, well-sourced guides to paintings, symbols, art terms and mythology, plus art history quizzes. From Istanbul, in English.'
 
 export async function generateMetadata(): Promise<Metadata> {
-  return sayfaMetadata({ baslik: BASLIK, aciklama: ACIKLAMA, yol: '/en', dil: 'en' })
+  return sayfaMetadata({
+    baslik: BASLIK, aciklama: ACIKLAMA, yol: '/en', dil: 'en',
+    dilAlternatifleri: { tr: '/', en: '/en', 'x-default': '/' },
+  })
 }
 
 async function yazilariGetir(): Promise<EnYazi[]> {

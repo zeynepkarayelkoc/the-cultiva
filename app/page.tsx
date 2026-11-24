@@ -19,6 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
     baslik: a.site_title,
     aciklama: a.site_description,
     yol: '/',
+    // Ana sayfaların dil eşi: Google İngilizce arayana /en'i göstersin.
+    dilAlternatifleri: { tr: '/', en: '/en', 'x-default': '/' },
   })
 }
 

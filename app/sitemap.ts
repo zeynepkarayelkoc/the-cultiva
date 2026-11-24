@@ -49,10 +49,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const bugun = new Date()
 
   const sabitler: MetadataRoute.Sitemap = [
-    { url: SITE_ADRES,                     lastModified: bugun, changeFrequency: 'daily',  priority: 1 },
+    { url: SITE_ADRES,                     lastModified: bugun, changeFrequency: 'daily',  priority: 1, alternates: { languages: { tr: SITE_ADRES, en: `${SITE_ADRES}/en`, 'x-default': SITE_ADRES } } },
     { url: `${SITE_ADRES}/testler`,        lastModified: bugun, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${SITE_ADRES}/testler/siralama`, lastModified: bugun, changeFrequency: 'daily', priority: 0.4 },
-    { url: `${SITE_ADRES}/en`,             lastModified: bugun, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${SITE_ADRES}/en`,             lastModified: bugun, changeFrequency: 'weekly', priority: 0.8, alternates: { languages: { tr: SITE_ADRES, en: `${SITE_ADRES}/en`, 'x-default': SITE_ADRES } } },
     { url: `${SITE_ADRES}/en/quizzes`,     lastModified: bugun, changeFrequency: 'weekly', priority: 0.6 },
   ]
 
