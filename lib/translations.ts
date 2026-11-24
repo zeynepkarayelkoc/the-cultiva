@@ -15,6 +15,11 @@
 
 // Türkçe slug -> İngilizce slug
 export const CEVIRI_CIFTLERI: Record<string, string> = {
+  // Kasım 2026
+  'inci-kupeli-kiz-tablosu':
+    'girl-with-a-pearl-earring-meaning',
+  'venusun-dogusu-tablosu':
+    'the-birth-of-venus-meaning',
   'sanat-ugruna-yolculukla-gecen-bir-hayat-paul-gauguin':
     'a-life-traveled-for-art-paul-gauguin',
   'michelangelonun-davut-heykeli':
