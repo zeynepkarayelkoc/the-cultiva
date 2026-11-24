@@ -1,5 +1,6 @@
 export const revalidate = 300
 
+import { yaziDili } from '@/lib/translations'
 import { createPublicClient, YAZI_LISTE_ALANLARI } from '@/lib/supabase/public'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -47,12 +48,14 @@ export default async function KategoriPage({ params }: { params: Promise<{ kateg
   if (!valid.includes(kategori)) notFound()
 
   const supabase = createPublicClient(300)
-  const { data: posts } = await supabase
+  const { data: tumu } = await supabase
     .from('posts')
     .select(YAZI_LISTE_ALANLARI)
     .eq('published', true)
     .eq('category', kategori)
     .order('created_at', { ascending: false })
+  // İngilizce yazılar /en'de listeleniyor; Türkçe kategori sayfasında gösterme.
+  const posts = (tumu ?? []).filter(p => yaziDili(p.slug) === 'tr')
 
   return (
     <div style={{ minHeight: '100vh' }}>

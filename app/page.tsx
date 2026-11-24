@@ -1,6 +1,7 @@
 // Ana sayfa sık değişiyor ama her ziyarette sıfırdan üretilmesi gerekmiyor.
 export const revalidate = 120
 
+import { yaziDili } from '@/lib/translations'
 import { createPublicClient, YAZI_LISTE_ALANLARI } from '@/lib/supabase/public'
 import { coverUrl } from '@/lib/coverUrl'
 import Link from 'next/link'
@@ -40,11 +41,14 @@ export default async function Home() {
   const supabase = createPublicClient(120)
   // Yapısal veri de panelden yönetilen başlık/açıklamayı kullansın
   const ayar = await siteAyarlari()
-  const { data: posts } = await supabase
+  const { data: tumu } = await supabase
     .from('posts')
     .select(YAZI_LISTE_ALANLARI)
     .eq('published', true)
     .order('created_at', { ascending: false })
+  // İngilizce yazılar /en'de listeleniyor; Türkçe ana sayfada gösterme.
+  // (Panelden öne çıkarılan yazılar bu filtreye takılmaz.)
+  const posts = (tumu ?? []).filter(p => yaziDili(p.slug) === 'tr')
 
   // Öne çıkan yazılar + slider ayarı
   const [{ data: featuredPosts }, { data: sliderSetting }] = await Promise.all([
