@@ -26,9 +26,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 0 = önbelleksiz. Site haritası her zaman güncel içeriği göstermeli.
   const supabase = createPublicClient(0)
 
-  // updated_at Kasım 2026'da eklendi (updated-at-ekle.sql). Kolon yoksa PostgREST
-  // sorgunun tamamını hataya düşürür ve site haritası boş kalır; o yüzden
-  // hata olursa updated_at'siz sorguya geri düşüyoruz.
+  // updated_at yalnızca içerik değişince yenilenir (bkz. updated-at-ekle.sql).
+  // Sorgu hata verirse site haritası boş kalmasın diye updated_at'siz sorguya düşüyoruz.
   const yaziSorgusu = async (): Promise<{ data: { slug: string; created_at: string | null; updated_at?: string | null; author_name: string | null }[] | null }> => {
     const ilk = await supabase.from('posts')
       .select('slug, created_at, updated_at, author_name')

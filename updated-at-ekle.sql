@@ -1,13 +1,15 @@
--- posts tablosuna "son güncellenme" tarihi ekler (Kasım 2026)
--- Supabase → SQL Editor'da bir kez çalıştır. Tekrar çalıştırmak zarar vermez.
+-- posts.updated_at düzenlemesi (24 Kasım 2026, Supabase SQL Editor'da çalıştırıldı)
+--
+-- Durum: updated_at kolonu zaten vardı ama eski "on_post_updated" tetikleyicisi
+-- HER güncellemede (öne çıkarma, sıralama dahil) tarihi yeniliyordu. Temmuz-Ağustos
+-- 2026 toplu taşıma/link düzeltmeleri yüzünden ~490 yazı sahte bir güncelleme
+-- tarihi taşıyordu. Bu dosya kayıt için; tekrar çalıştırmak zarar vermez.
 
--- 1) Kolon. Var olan yazılarda başlangıç değeri yayın tarihi.
 alter table public.posts add column if not exists updated_at timestamptz;
 update public.posts set updated_at = created_at where updated_at is null;
 alter table public.posts alter column updated_at set default now();
 
--- 2) Yalnızca okurun gördüğü içerik değişince tarihi yenile.
---    Ana sayfada öne çıkarma, sıralama gibi panel işlemleri tarihi değiştirmesin.
+-- Yalnızca okurun gördüğü içerik değişince tarihi yenile.
 create or replace function public.posts_updated_at_yenile()
 returns trigger
 language plpgsql
@@ -31,7 +33,14 @@ create trigger posts_updated_at
   before update on public.posts
   for each row execute function public.posts_updated_at_yenile();
 
--- 3) Bu ay elle güncellenen yazılar
+-- Eski, her şeyde tetiklenen tetikleyiciyi kaldır.
+drop trigger if exists on_post_updated on public.posts;
+
+-- Toplu düzeltmelerin bıraktığı sahte tarihleri sıfırla.
+update public.posts set updated_at = created_at
+  where updated_at::date in ('2026-07-31', '2026-08-01');
+
+-- Gerçekten güncellenen yazılar
 update public.posts set updated_at = '2026-11-22 12:00+03'
   where slug = 'vizesiz-yunan-adalari-kapida-vize-uygulamasi-rehberi';
 update public.posts set updated_at = '2026-11-01 12:00+03'
@@ -43,7 +52,5 @@ update public.posts set updated_at = '2026-11-01 12:00+03'
     'yeniden-sekillendirilmis-tanrica-kirke',
     'surgunde-bir-cadi-ben-kirke'
   );
-
--- Kontrol: en son güncellenen 10 yazı
-select slug, created_at::date as yayin, updated_at::date as guncelleme
-from public.posts order by updated_at desc nulls last limit 10;
+update public.posts set updated_at = created_at
+  where slug in ('ciglik-tablosunun-anlami','mihrap-tablosunun-hikayesi','opucuk-tablosunun-anlami-klimt');
