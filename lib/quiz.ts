@@ -40,6 +40,8 @@ export type Quiz = {
   category: string | null
   author_name: string | null
   published: boolean
+  /** Testin dili. Kolon Kasım 2026'da eklendi; eski kayıtlarda 'tr'. */
+  lang?: 'tr' | 'en' | null
   play_count: number
   created_at: string
   quiz_questions: QuizQuestion[]

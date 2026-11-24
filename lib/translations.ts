@@ -157,3 +157,20 @@ export function dilAlternatifleri(slug: string): Record<string, string> | undefi
     'x-default': adres(bu === 'tr' ? slug : es.slug),
   }
 }
+
+/** Sitedeki bütün İngilizce yazıların slug'ları (/en ana sayfası için). */
+export function ingilizceSluglar(): string[] {
+  return [...Object.keys(TERS), ...TEKIL_INGILIZCE]
+}
+
+/**
+ * Adres çubuğundaki yoldan arayüz dilini çıkarır. Menü (Navbar) bunu kullanıyor.
+ * /en/... İngilizce; /yazi/<slug> yazının diline göre; geri kalan her şey Türkçe.
+ */
+export function yolDili(yol: string | null | undefined): Dil {
+  if (!yol) return 'tr'
+  if (yol === '/en' || yol.startsWith('/en/')) return 'en'
+  const m = yol.match(/^\/yazi\/([^/?#]+)/)
+  if (m) return yaziDili(decodeURIComponent(m[1]))
+  return 'tr'
+}

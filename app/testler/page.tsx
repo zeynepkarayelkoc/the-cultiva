@@ -1,6 +1,6 @@
 export const revalidate = 300
 
-import { createPublicClient } from '@/lib/supabase/public'
+import { testListesi } from '@/lib/testVeri'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { coverStyle } from '@/lib/coverUrl'
@@ -15,14 +15,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function TestlerPage() {
-  const supabase = createPublicClient(300)
-  const { data: quizzes } = await supabase
-    .from('quizzes')
-    .select('id,slug,title,description,cover_url,type,category,play_count')
-    .eq('published', true)
-    .order('created_at', { ascending: false })
-
-  const liste = quizzes ?? []
+  // Yalnızca Türkçe testler; İngilizceler /en/quizzes'te.
+  const liste = await testListesi('tr')
 
   return (
     <div style={{ maxWidth: 1080, margin: '0 auto', padding: '3rem 1.5rem 5rem' }}>

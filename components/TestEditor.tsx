@@ -69,6 +69,7 @@ export default function TestEditor({
   const [kapak, setKapak]     = useState(quiz.cover_url ?? '')
   const [kategori, setKategori] = useState(quiz.category ?? '')
   const [yayinda, setYayinda] = useState(quiz.published)
+  const [dil, setDil] = useState<'tr' | 'en'>(quiz.lang === 'en' ? 'en' : 'tr')
 
   // Her sorunun en az 4 şık satırı olsun; eksikse boş satırlarla tamamla,
   // yoksa şıkkı silinmiş/hiç girilmemiş sorulara şık eklenemez.
@@ -193,6 +194,7 @@ export default function TestEditor({
     const { error: e1 } = await supabase.from('quizzes').update({
       title: baslik.trim(), slug: slug.trim(), description: aciklama.trim() || null,
       cover_url: kapak.trim() || null, category: kategori || null, published: yayinda,
+      lang: dil,
     }).eq('id', quiz.id)
     if (e1) { setKaydediliyor(false); setErr(e1.message); return }
 
@@ -237,7 +239,7 @@ export default function TestEditor({
     // Eski ve yeni adresin önbelleğini hemen temizle (bkz. app/api/yenile).
     fetch('/api/yenile', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ yollar: [...new Set([`/test/${quiz.slug}`, `/test/${slug.trim()}`])] }),
+      body: JSON.stringify({ yollar: [...new Set([`/test/${quiz.slug}`, `/test/${slug.trim()}`, `/en/quiz/${quiz.slug}`, `/en/quiz/${slug.trim()}`, '/en', '/en/quizzes'])] }),
     }).catch(() => {})
     router.refresh()
   }
@@ -254,7 +256,7 @@ export default function TestEditor({
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           {msg && <span style={{ fontSize: '0.75rem', color: T.green }}>{msg}</span>}
           {err && <span style={{ fontSize: '0.75rem', color: T.danger }}>{err}</span>}
-          <a href={`/test/${slug}`} target="_blank" rel="noopener" style={{ ...btn, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Önizle ↗</a>
+          <a href={dil === 'en' ? `/en/quiz/${slug}` : `/test/${slug}`} target="_blank" rel="noopener" style={{ ...btn, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Önizle ↗</a>
           <button style={{ ...btn, background: yayinda ? T.greenSoft : '#fff', color: yayinda ? T.green : T.text, borderColor: yayinda ? T.green : T.border }}
             onClick={() => setYayinda((v: boolean) => !v)}>
             {yayinda ? '● yayında' : '○ taslak'}
@@ -290,6 +292,13 @@ export default function TestEditor({
               <select style={input} value={kategori} onChange={e => setKategori(e.target.value)}>
                 <option value="">seçilmedi</option>
                 {categories.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={label}>Dil</label>
+              <select style={input} value={dil} onChange={e => setDil(e.target.value === 'en' ? 'en' : 'tr')}>
+                <option value="tr">Türkçe (/test/…)</option>
+                <option value="en">İngilizce (/en/quiz/…)</option>
               </select>
             </div>
           </div>

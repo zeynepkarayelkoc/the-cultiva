@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { createPublicClient } from '@/lib/supabase/public'
 import { authorSlug } from '@/lib/authorSlug'
+import { testYolu } from '@/lib/i18n'
 import { SITE_ADRES } from '@/lib/seo'
 import { dilAlternatifleri } from '@/lib/translations'
 
@@ -42,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [yazilar, kategoriler, testler] = await Promise.all([
     yaziSorgusu(),
     supabase.from('categories').select('slug').order('sort_order'),
-    supabase.from('quizzes').select('slug, created_at').eq('published', true),
+    supabase.from('quizzes').select('slug, created_at, lang').eq('published', true),
   ])
 
   const bugun = new Date()
@@ -51,6 +52,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: SITE_ADRES,                     lastModified: bugun, changeFrequency: 'daily',  priority: 1 },
     { url: `${SITE_ADRES}/testler`,        lastModified: bugun, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${SITE_ADRES}/testler/siralama`, lastModified: bugun, changeFrequency: 'daily', priority: 0.4 },
+    { url: `${SITE_ADRES}/en`,             lastModified: bugun, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${SITE_ADRES}/en/quizzes`,     lastModified: bugun, changeFrequency: 'weekly', priority: 0.6 },
   ]
 
   // categories tablosu okunamazsa (RLS) site haritası kategorisiz kalmasın.
@@ -102,7 +105,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   const testSayfalari: MetadataRoute.Sitemap = (testler.data ?? []).map(t => ({
-    url: `${SITE_ADRES}/test/${t.slug}`,
+    url: `${SITE_ADRES}${testYolu(t.slug, t.lang === 'en' ? 'en' : 'tr')}`,
     lastModified: new Date(t.created_at ?? bugun),
     changeFrequency: 'monthly' as const,
     priority: 0.6,

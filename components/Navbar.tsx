@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { yolDili } from '@/lib/translations'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -27,6 +28,11 @@ export default function Navbar() {
     router.push('/')
   }
 
+  // İngilizce sayfalarda (/en/... ve İngilizce yazılar) menü İngilizce.
+  // Türkçe menü eskisiyle aynı; yalnızca sağa küçük bir "EN" bağlantısı eklendi.
+  const en = yolDili(pathname) === 'en'
+  const aktif = (href: string) => href === '/en' ? pathname === '/en' : pathname.startsWith(href)
+
   const categories = [
     { href: '/yasam', label: 'yaşam' },
     { href: '/seyahat', label: 'seyahat' },
@@ -35,6 +41,15 @@ export default function Navbar() {
     { href: '/rehber', label: 'rehber' },
     { href: '/kitap', label: 'kitap' },
   ]
+  const enMenu = [
+    { href: '/en', label: 'articles' },
+    { href: '/en/quizzes', label: 'quizzes' },
+  ]
+  const masaustuMenu = en ? enMenu : [...categories.slice(0, 3), { href: '/testler', label: 'testler' }]
+  const mobilMenu = en ? enMenu : [...categories, { href: '/testler', label: 'testler' }]
+  const dilBaglanti = en
+    ? { href: '/', label: 'türkçe', hrefLang: 'tr' }
+    : { href: '/en', label: 'EN', hrefLang: 'en' }
 
   return (
     <nav style={{
@@ -45,7 +60,7 @@ export default function Navbar() {
       backdropFilter: 'blur(16px)',
       borderBottom: '1px solid var(--border)',
     }} className="site-nav">
-      <Link href="/" style={{ display: 'flex', alignItems: 'center' }}>
+      <Link href={en ? '/en' : '/'} style={{ display: 'flex', alignItems: 'center' }}>
         <img
           src="/logo.png"
           alt="The Cultiva"
@@ -55,13 +70,13 @@ export default function Navbar() {
 
       {/* Masaüstü orta menü */}
       <ul className="nav-desktop" style={{ display: 'flex', gap: '2rem', listStyle: 'none' }}>
-        {[...categories.slice(0, 3), { href: '/testler', label: 'testler' }].map(({ href, label }) => (
+        {masaustuMenu.map(({ href, label }) => (
           <li key={href}>
             <Link href={href} className="nav-link" style={{
               fontSize: '0.75rem',
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              color: pathname.startsWith(href) ? 'var(--terra)' : 'var(--muted)',
+              color: aktif(href) ? 'var(--terra)' : 'var(--muted)',
             }}>{label}</Link>
           </li>
         ))}
@@ -69,7 +84,10 @@ export default function Navbar() {
 
       {/* Masaüstü sağ aksiyonlar */}
       <div className="nav-desktop" style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
-        {user ? (
+        <Link href={dilBaglanti.href} hrefLang={dilBaglanti.hrefLang} style={{
+          fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)',
+        }}>{dilBaglanti.label}</Link>
+        {en ? null : user ? (
           <>
             <Link href="/panel" style={{
               fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase',
@@ -119,15 +137,16 @@ export default function Navbar() {
           display: 'flex', flexDirection: 'column',
           padding: '0.5rem 1.5rem 1.5rem',
         }}>
-          {[...categories, { href: '/testler', label: 'testler' }].map(({ href, label }) => (
+          {mobilMenu.map(({ href, label }) => (
             <Link key={href} href={href} style={{
               fontSize: '0.9rem', letterSpacing: '0.08em', textTransform: 'uppercase',
-              color: pathname.startsWith(href) ? 'var(--terra)' : 'var(--text)',
+              color: aktif(href) ? 'var(--terra)' : 'var(--text)',
               padding: '0.85rem 0',
               borderBottom: '1px solid var(--border)',
             }}>{label}</Link>
           ))}
-          {user ? (
+          <Link href={dilBaglanti.href} hrefLang={dilBaglanti.hrefLang} style={{ fontSize: '0.9rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--muted)', padding: '0.85rem 0', borderBottom: '1px solid var(--border)' }}>{en ? 'türkçe' : 'english'}</Link>
+          {en ? null : user ? (
             <>
               <Link href="/panel" style={{ fontSize: '0.9rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--terra)', padding: '0.85rem 0', borderBottom: '1px solid var(--border)' }}>panelim</Link>
               <button onClick={handleSignOut} style={{ textAlign: 'left', fontSize: '0.9rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--muted)', background: 'none', border: 'none', padding: '0.85rem 0' }}>çıkış</button>

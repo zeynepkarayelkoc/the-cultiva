@@ -13,6 +13,8 @@ import JsonLd from '@/components/JsonLd'
 import { coverUrl } from '@/lib/coverUrl'
 import { sayfaMetadata, makaleSemasi, kirintiSemasi, kisalt } from '@/lib/seo'
 import { yaziDili, ceviriSlug, dilAlternatifleri } from '@/lib/translations'
+import { METIN, KATEGORI_ADI, tarihYerel } from '@/lib/i18n'
+import BelgeDili from '@/components/BelgeDili'
 
 const labels: Record<string, string> = { yasam: 'yaşam', seyahat: 'seyahat', sanat: 'sanat', sinema: 'sinema', rehber: 'rehber', kitap: 'kitap' }
 
@@ -88,11 +90,17 @@ export default async function YaziPage({ params }: { params: Promise<{ slug: str
   const kategoriAdi = labels[post.category ?? ''] ?? post.category ?? ''
   const dil = yaziDili(post.slug)
   const ceviri = ceviriSlug(post.slug)
+  // Arayüz metinleri yazının diline göre. Türkçe yazılarda eskisiyle aynı.
+  const t = METIN[dil]
+  const en = dil === 'en'
+  const kategoriEtiketi = en ? (KATEGORI_ADI.en[post.category ?? ''] ?? post.category) : labels[post.category]
+  const kategoriYolu = en ? '/en' : `/${post.category}`
 
   return (
     // lang niteliği yazının kendi dilini söyler. Kök layout'ta site geneli
     // "tr" tanımlı; İngilizce yazılarda burada düzeltiliyor.
     <article lang={dil} style={{ minHeight: '100vh' }}>
+      {en && <BelgeDili dil="en" />}
       <JsonLd veri={[
         makaleSemasi({
           baslik: post.meta_title?.trim() || post.title,
@@ -132,7 +140,7 @@ export default async function YaziPage({ params }: { params: Promise<{ slug: str
           color: 'var(--terra)', background: 'rgba(245,240,232,0.9)',
           padding: '0.3rem 0.8rem', borderRadius: 50,
         }}>
-          <Link href={`/${post.category}`}>{labels[post.category]}</Link>
+          <Link href={kategoriYolu}>{kategoriEtiketi}</Link>
         </div>
       </div>
 
@@ -167,19 +175,19 @@ export default async function YaziPage({ params }: { params: Promise<{ slug: str
             </>
           )}
           <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
-            {new Date(post.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+            {new Date(post.created_at).toLocaleDateString(tarihYerel(dil), { day: 'numeric', month: 'long', year: 'numeric' })}
           </span>
           {/* Yayından en az 3 gün sonra içerik değiştiyse güncelleme tarihini de göster. */}
           {post.updated_at && new Date(post.updated_at).getTime() - new Date(post.created_at).getTime() > 3 * 86400000 && (
             <>
               <span style={{ color: 'var(--border)' }}>·</span>
               <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
-                Güncellendi: {new Date(post.updated_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                {t.guncellendi}: {new Date(post.updated_at).toLocaleDateString(tarihYerel(dil), { day: 'numeric', month: 'long', year: 'numeric' })}
               </span>
             </>
           )}
           <span style={{ color: 'var(--border)' }}>·</span>
-          <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>{post.read_time} dk okuma</span>
+          <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>{post.read_time} {t.dkOkuma}</span>
         </div>
 
         {post.content ? (
@@ -215,11 +223,11 @@ export default async function YaziPage({ params }: { params: Promise<{ slug: str
 
         {/* Back link */}
         <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--border)' }}>
-          <Link href={`/${post.category}`} style={{
+          <Link href={kategoriYolu} style={{
             fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase',
             color: 'var(--terra)', borderBottom: '1px solid rgba(181,115,74,0.3)',
           }}>
-            ← {labels[post.category]} yazılarına dön
+            ← {t.yazilarinaDon(labels[post.category])}
           </Link>
         </div>
       </div>

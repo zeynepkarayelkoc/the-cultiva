@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Quiz, QuizOutcome } from '@/lib/quiz'
+import { METIN, testYolu, type Dil } from '@/lib/i18n'
 
 /*
   Test sayfasının altındaki içerik bölümü.
@@ -28,6 +29,7 @@ export type SoruCevap = { soru: string; cevap: string }
 /** SSS metinleri. Hem ekranda hem JSON-LD'de aynısı kullanılacağı için
  *  tek yerden üretiliyor; ikisi ayrışırsa Google yapısal veriyi reddeder. */
 export function sikSorulanlar(quiz: Quiz): SoruCevap[] {
+  if (quiz.lang === 'en') return sikSorulanlarEn(quiz)
   const soruSayisi = quiz.quiz_questions?.length ?? 0
   const dakika = Math.max(1, Math.round(soruSayisi * 0.4))
   const kisilik = quiz.type === 'kisilik'
@@ -72,7 +74,42 @@ export function sikSorulanlar(quiz: Quiz): SoruCevap[] {
   return liste
 }
 
-function SonucKarti({ sonuc, kisilik }: { sonuc: QuizOutcome; kisilik: boolean }) {
+/** İngilizce testlerin SSS'si. Üyelik ve sıralama İngilizce bölümde yok, o yüzden
+ *  o sorular burada yer almıyor. */
+function sikSorulanlarEn(quiz: Quiz): SoruCevap[] {
+  const soruSayisi = quiz.quiz_questions?.length ?? 0
+  const dakika = Math.max(1, Math.round(soruSayisi * 0.4))
+  const kisilik = quiz.type === 'kisilik'
+  const adlar = (quiz.quiz_outcomes ?? []).map(s => s.title).filter(Boolean)
+  const liste: SoruCevap[] = [
+    {
+      soru: `How long is the "${quiz.title}" quiz?`,
+      cevap: `It has ${soruSayisi} questions and takes about ${dakika} minute${dakika > 1 ? 's' : ''}. You answer them one by one.`,
+    },
+    {
+      soru: 'Do I need to sign up?',
+      cevap: 'No. The quiz is free and you can take it without an account.',
+    },
+  ]
+  if (kisilik) {
+    if (adlar.length) liste.push({
+      soru: 'What results can I get?',
+      cevap: `There are ${adlar.length} possible results: ${adlar.join(', ')}. Your answers decide which one you get.`,
+    })
+  } else {
+    liste.push({
+      soru: 'How is the score calculated?',
+      cevap: 'Each correct answer is worth 100 points, and finishing quickly adds a time bonus.',
+    })
+  }
+  liste.push({
+    soru: 'How do I share my result?',
+    cevap: 'Press "Share your result" on the result screen. On a phone the share menu opens; on a computer the link is copied to your clipboard.',
+  })
+  return liste
+}
+
+function SonucKarti({ sonuc, kisilik, dil }: { sonuc: QuizOutcome; kisilik: boolean; dil: Dil }) {
   return (
     <li style={{
       listStyle: 'none',
@@ -90,7 +127,7 @@ function SonucKarti({ sonuc, kisilik }: { sonuc: QuizOutcome; kisilik: boolean }
         {sonuc.title}
         {!kisilik && sonuc.min_correct !== null && (
           <span style={{ fontSize: '0.7rem', color: 'var(--muted)', fontWeight: 400, marginLeft: '0.5rem' }}>
-            {sonuc.min_correct}+ doğru
+            {METIN[dil].enAzDogru(sonuc.min_correct)}
           </span>
         )}
       </h3>
@@ -105,6 +142,8 @@ function SonucKarti({ sonuc, kisilik }: { sonuc: QuizOutcome; kisilik: boolean }
 
 export default function TestSayfaIcerik({ quiz, digerTestler }: Props) {
   const kisilik = quiz.type === 'kisilik'
+  const dil: Dil = quiz.lang === 'en' ? 'en' : 'tr'
+  const t = METIN[dil]
   const soruSayisi = quiz.quiz_questions?.length ?? 0
   const sonuclar = [...(quiz.quiz_outcomes ?? [])].sort(
     (a, b) => (b.min_correct ?? 0) - (a.min_correct ?? 0),
@@ -118,23 +157,23 @@ export default function TestSayfaIcerik({ quiz, digerTestler }: Props) {
       {sonuclar.length > 0 && (
         <>
           <h2 style={baslik}>
-            {kisilik ? 'Bu testte hangi sonuçlar var?' : 'Rozetler'}
+            {kisilik ? t.hangiSonuclar : t.rozetler}
           </h2>
           <p style={paragraf}>
             {kisilik
-              ? `${quiz.title} testinde ${sonuclar.length} farklı sonuç çıkabiliyor. Verdiğin cevaplar en çok hangisine yakınsa o çıkıyor; doğru ya da yanlış cevap yok.`
-              : `${soruSayisi} sorunun kaçını bildiğine göre bir rozet kazanıyorsun. En üsttekine ulaşmak için neredeyse hepsini doğru bilmen gerekiyor.`}
+              ? t.kisilikAciklama(quiz.title, sonuclar.length)
+              : t.bilgiAciklama(soruSayisi)}
           </p>
           <ul style={{ padding: 0, margin: '0 0 2.5rem' }}>
             {sonuclar.map(s => (
-              <SonucKarti key={s.id} sonuc={s} kisilik={kisilik} />
+              <SonucKarti key={s.id} sonuc={s} kisilik={kisilik} dil={dil} />
             ))}
           </ul>
         </>
       )}
 
       {/* Sık sorulanlar */}
-      <h2 style={baslik}>Sık sorulanlar</h2>
+      <h2 style={baslik}>{t.sss}</h2>
       <div style={{ marginBottom: '2.5rem' }}>
         {sss.map(({ soru, cevap }) => (
           <div key={soru} style={{ marginBottom: '1.2rem' }}>
@@ -151,11 +190,11 @@ export default function TestSayfaIcerik({ quiz, digerTestler }: Props) {
       {/* Diğer testler: hem okuyucu için hem iç bağlantı için */}
       {digerTestler.length > 0 && (
         <>
-          <h2 style={baslik}>Başka testler</h2>
+          <h2 style={baslik}>{t.baskaTestler}</h2>
           <ul style={{ padding: 0, margin: 0, display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {digerTestler.map(t => (
-              <li key={t.slug} style={{ listStyle: 'none' }}>
-                <Link href={`/test/${t.slug}`} style={{
+            {digerTestler.map(d => (
+              <li key={d.slug} style={{ listStyle: 'none' }}>
+                <Link href={testYolu(d.slug, dil)} style={{
                   display: 'inline-block',
                   fontSize: '0.82rem',
                   padding: '0.45rem 0.9rem',
@@ -164,7 +203,7 @@ export default function TestSayfaIcerik({ quiz, digerTestler }: Props) {
                   background: 'white',
                   color: 'var(--text)',
                 }}>
-                  {t.title}
+                  {d.title}
                 </Link>
               </li>
             ))}

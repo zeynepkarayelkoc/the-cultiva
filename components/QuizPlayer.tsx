@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import {
   Quiz, QuizOutcome, puanHesapla, bilgiSonucu, kisilikSonucu, VARSAYILAN_RENK,
 } from '@/lib/quiz'
+import { METIN, sayiYerel, testListeYolu } from '@/lib/i18n'
 
 type Durum = 'giris' | 'soru' | 'sonuc'
 
@@ -22,6 +23,11 @@ export default function QuizPlayer({ quiz }: { quiz: Quiz }) {
   const supabase = createClient()
   const sorular = [...quiz.quiz_questions].sort((a, b) => a.position - b.position)
   const bilgi = quiz.type === 'bilgi'
+  // Arayüz dili. İngilizce testlerde giriş/sıralama bağlantıları gösterilmiyor,
+  // çünkü o sayfalar yalnızca Türkçe.
+  const dil = quiz.lang === 'en' ? 'en' : 'tr'
+  const t = METIN[dil]
+  const tr = dil === 'tr'
 
   const [durum, setDurum] = useState<Durum>('giris')
   const [i, setI] = useState(0)
@@ -92,8 +98,8 @@ export default function QuizPlayer({ quiz }: { quiz: Quiz }) {
   const paylas = async () => {
     const adres = window.location.href
     const baslik = bilgi
-      ? `${quiz.title} testinde ${dogru}/${sorular.length} yaptım.`
-      : `${quiz.title} testinde sonucum: ${sonuc?.title ?? ''}`
+      ? t.paylasBilgi(quiz.title, dogru, sorular.length)
+      : t.paylasKisilik(quiz.title, sonuc?.title ?? '')
     try {
       if (navigator.share) {
         await navigator.share({ title: quiz.title, text: baslik, url: adres })
@@ -122,7 +128,7 @@ export default function QuizPlayer({ quiz }: { quiz: Quiz }) {
   }
 
   if (sorular.length === 0) {
-    return <p style={{ color: 'var(--muted)' }}>Bu testte henüz soru yok.</p>
+    return <p style={{ color: 'var(--muted)' }}>{t.soruYok}</p>
   }
 
   /* ---------- GİRİŞ ---------- */
@@ -135,7 +141,7 @@ export default function QuizPlayer({ quiz }: { quiz: Quiz }) {
       }} />
       <div style={{ padding: '1.8rem' }}>
         <div style={{ fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--terra)', marginBottom: '0.7rem' }}>
-          {bilgi ? 'bilgi testi' : 'kişilik testi'}
+          {bilgi ? t.bilgiTesti : t.kisilikTesti}
         </div>
         <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(1.5rem, 4vw, 2.1rem)', fontWeight: 400, lineHeight: 1.25, marginBottom: '0.8rem' }}>
           {quiz.title}
@@ -146,12 +152,12 @@ export default function QuizPlayer({ quiz }: { quiz: Quiz }) {
           </p>
         )}
         <div style={{ display: 'flex', gap: '0.8rem', fontSize: '0.78rem', color: 'var(--muted)', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-          <span>{sorular.length} soru</span><span>·</span>
-          <span>{Math.max(1, Math.round(sorular.length * 0.4))} dk</span><span>·</span>
-          <span>{quiz.play_count.toLocaleString('tr-TR')} kişi çözdü</span>
+          <span>{sorular.length} {t.soru}</span><span>·</span>
+          <span>{Math.max(1, Math.round(sorular.length * 0.4))} {t.dk}</span><span>·</span>
+          <span>{quiz.play_count.toLocaleString(sayiYerel(dil))} {t.kisiCozdu}</span>
         </div>
-        <button onClick={basla} style={anaBtn}>Teste başla</button>
-        {girisYapti === false && (
+        <button onClick={basla} style={anaBtn}>{t.testeBasla}</button>
+        {tr && girisYapti === false && (
           <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: '1rem' }}>
             Puanının kaydedilmesi ve sıralamaya girmek için{' '}
             <Link href="/giris" style={{ color: 'var(--terra)' }}>giriş yap</Link>.
@@ -170,7 +176,7 @@ export default function QuizPlayer({ quiz }: { quiz: Quiz }) {
 
       <div style={{ ...kart, padding: '1.6rem' }}>
         <div style={{ fontSize: '0.7rem', color: 'var(--muted)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '0.7rem' }}>
-          soru {i + 1} / {sorular.length}
+          {t.soruSayaci} {i + 1} / {sorular.length}
         </div>
 
         {soru.image_url && (
@@ -234,7 +240,7 @@ export default function QuizPlayer({ quiz }: { quiz: Quiz }) {
               </div>
             )}
             <button onClick={ilerle} style={anaBtn}>
-              {i + 1 < sorular.length ? 'Sonraki soru' : 'Sonucu gör'}
+              {i + 1 < sorular.length ? t.sonrakiSoru : t.sonucuGor}
             </button>
           </div>
         )}
@@ -261,10 +267,10 @@ export default function QuizPlayer({ quiz }: { quiz: Quiz }) {
       ) : null}
 
       <div style={{ fontSize: '0.68rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: renk, marginBottom: '0.5rem' }}>
-        sonucun
+        {t.sonucun}
       </div>
       <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.7rem', fontWeight: 400, marginBottom: '0.7rem' }}>
-        {sonuc?.title ?? (bilgi ? `${dogru}/${sorular.length} doğru` : 'Sonuç')}
+        {sonuc?.title ?? (bilgi ? `${dogru}/${sorular.length} ${t.dogruKisa}` : t.sonuc)}
       </h2>
       {sonuc?.description && (
         <p style={{ fontSize: '0.95rem', color: 'var(--muted)', lineHeight: 1.7, maxWidth: 460, margin: '0 auto 1.5rem' }}>
@@ -274,7 +280,7 @@ export default function QuizPlayer({ quiz }: { quiz: Quiz }) {
 
       {bilgi && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.7rem', maxWidth: 380, margin: '0 auto 1.5rem' }}>
-          {[['Puan', puan], ['Süre', `${saniye} sn`], ['Doğru', `%${Math.round(dogru / sorular.length * 100)}`]].map(([k, v]) => (
+          {[[t.puan, puan], [t.sure, `${saniye} ${t.sn}`], [t.dogru, t.yuzde(Math.round(dogru / sorular.length * 100))]].map(([k, v]) => (
             <div key={k as string} style={{ background: 'var(--cream, #f5f0e8)', borderRadius: 10, padding: '0.8rem 0.4rem' }}>
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.25rem' }}>{v}</div>
               <div style={{ fontSize: '0.62rem', color: 'var(--muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: 2 }}>{k}</div>
@@ -285,22 +291,22 @@ export default function QuizPlayer({ quiz }: { quiz: Quiz }) {
 
       <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'center', flexWrap: 'wrap' }}>
         <button onClick={paylas} style={anaBtn}>
-          {paylasildi ? 'Bağlantı kopyalandı' : 'Sonucu paylaş'}
+          {paylasildi ? t.kopyalandi : t.paylas}
         </button>
         <button onClick={basla} style={{ ...anaBtn, background: '#fff', color: 'var(--text)', border: '1px solid var(--border)' }}>
-          Tekrar dene
+          {t.tekrarDene}
         </button>
-        {bilgi && (
+        {tr && bilgi && (
           <Link href="/testler/siralama" style={{ ...anaBtn, background: '#fff', color: 'var(--text)', border: '1px solid var(--border)', textDecoration: 'none', display: 'inline-block' }}>
             Şampiyonluk tablosu
           </Link>
         )}
-        <Link href="/testler" style={{ ...anaBtn, background: '#fff', color: 'var(--text)', border: '1px solid var(--border)', textDecoration: 'none', display: 'inline-block' }}>
-          Başka test
+        <Link href={testListeYolu(dil)} style={{ ...anaBtn, background: '#fff', color: 'var(--text)', border: '1px solid var(--border)', textDecoration: 'none', display: 'inline-block' }}>
+          {t.baskaTest}
         </Link>
       </div>
 
-      <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: '1.2rem' }}>
+      {tr && <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: '1.2rem' }}>
         {girisYapti === false
           ? bilgi
             ? <>Puanın kaydedilmedi. <Link href="/giris" style={{ color: 'var(--terra)' }}>Giriş yap</Link>, sıralamaya gir.</>
@@ -308,7 +314,7 @@ export default function QuizPlayer({ quiz }: { quiz: Quiz }) {
           : kaydedildi === 'evet' ? (bilgi ? 'Puanın profiline işlendi.' : 'Sonucun profiline işlendi.')
           : kaydedildi === 'hata' ? 'Kaydedilemedi.'
           : 'Kaydediliyor…'}
-      </div>
+      </div>}
     </div>
   )
 }

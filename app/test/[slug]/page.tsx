@@ -3,41 +3,18 @@
 // içerik, hızlanmaları doğrudan işimize yarıyor.
 export const revalidate = 300
 
-import { createPublicClient } from '@/lib/supabase/public'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
+import { testGetir, digerTestleriGetir } from '@/lib/testVeri'
 import Link from 'next/link'
 import QuizPlayer from '@/components/QuizPlayer'
 import JsonLd from '@/components/JsonLd'
 import TestSayfaIcerik, { sikSorulanlar } from '@/components/TestSayfaIcerik'
-import type { Quiz } from '@/lib/quiz'
 import type { Metadata } from 'next'
 import { sayfaMetadata, mutlakAdres } from '@/lib/seo'
 
 // params request-time API; bu olmadan rota hiç önbelleğe alınmaz.
 export function generateStaticParams() {
   return []
-}
-
-async function digerTestleriGetir(haricSlug: string) {
-  const supabase = createPublicClient(300)
-  const { data } = await supabase
-    .from('quizzes')
-    .select('slug, title, type')
-    .eq('published', true)
-    .neq('slug', haricSlug)
-    .order('play_count', { ascending: false })
-    .limit(8)
-  return data ?? []
-}
-
-async function testGetir(slug: string) {
-  const supabase = createPublicClient(300)
-  const { data } = await supabase
-    .from('quizzes')
-    .select('*, quiz_questions(*, quiz_options(*)), quiz_outcomes(*)')
-    .eq('slug', slug)
-    .single()
-  return data as Quiz | null
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -57,8 +34,10 @@ export default async function TestPage({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const quiz = await testGetir(slug)
   if (!quiz) notFound()
+  // İngilizce testlerin adresi /en/quiz/<slug>
+  if (quiz.lang === 'en') permanentRedirect(`/en/quiz/${quiz.slug}`)
 
-  const digerTestler = await digerTestleriGetir(quiz.slug)
+  const digerTestler = await digerTestleriGetir(quiz.slug, 'tr')
 
   const sss = sikSorulanlar(quiz)
 

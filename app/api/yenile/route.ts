@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
   const temiz = [...new Set([
     ...yollar.filter(y => typeof y === 'string' && y.startsWith('/') && y.length < 300),
-    '/', '/testler', '/sitemap.xml',
+    '/', '/testler', '/en', '/en/quizzes', '/sitemap.xml',
   ])]
   for (const y of temiz) revalidatePath(y)
 

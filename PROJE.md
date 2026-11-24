@@ -451,3 +451,13 @@ yazının başlığı değil site başlığı görünüyordu. Asıl düzeltilen 
 - [ ] Yazı sonuna "ilgili yazılar" bloğu (iç bağlantı, Google'ın site içi gezinmesini kolaylaştırır)
 - [ ] `meta_title` / `meta_description` boş kalan yazıları doldur (özet yeterli ama özel yazılmış olanı daha iyi)
 - [ ] Yazı sonu paylaşım düğmeleri
+
+## İngilizce bölüm (Kasım 2026)
+
+- Adresler: `/en` (İngilizce ana sayfa), `/en/quizzes`, `/en/quiz/<slug>`. İngilizce yazılar eski `/yazi/<slug>` adreslerinde kalıyor.
+- Yazının dili `lib/translations.ts`'ten (çeviri çiftleri + `TEKIL_INGILIZCE`). Yeni bir İngilizce yazı yayınlarsan slug'ını oraya ekle; `/en` listesi ve menü dili buna bakıyor.
+- Testin dili veritabanında: `quizzes.lang` (`tr` | `en`, varsayılan `tr`, bkz. `test-dil-ekle.sql`). Paneldeki test düzenleyicide "Dil" alanı var; `/api/quiz-import` gövdesine `"lang": "en"` eklenebilir.
+- Arayüz metinleri `lib/i18n.ts`. Türkçe metinler eski bileşenlerdekiyle birebir aynı.
+- İngilizce testlerde giriş, puan kaydı uyarıları ve şampiyonluk tablosu gösterilmiyor (o sayfalar yalnızca Türkçe).
+- Menü (Navbar) dili yoldan çıkarıyor (`yolDili`). Türkçe menüye yalnızca sağda küçük bir "EN" bağlantısı eklendi.
+- Kök layout `<html lang="tr">` sabit (önbellek için). İngilizce sayfalar `components/BelgeDili.tsx` ile tarayıcıda `lang="en"` yapıyor; içerik ayrıca `lang="en"` ile işaretli.

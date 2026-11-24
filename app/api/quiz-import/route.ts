@@ -17,6 +17,7 @@ type GelenSonuc = {
 }
 type Gelen = {
   title: string; description?: string | null; type?: 'bilgi' | 'kisilik'
+  lang?: 'tr' | 'en'   // varsayılan Türkçe; 'en' testler /en/quiz/<slug> adresinde yayınlanır
   category?: string | null; cover_url?: string | null; published?: boolean
   questions: GelenSoru[]; outcomes?: GelenSonuc[]
 }
@@ -95,6 +96,7 @@ export async function POST(req: NextRequest) {
     type: tip,
     category: kategori,
     published: g.published !== false,
+    lang: g.lang === 'en' ? 'en' : 'tr',
   }).select('id,slug').single()
   if (e1 || !quiz) return NextResponse.json({ error: e1?.message ?? 'Test oluşturulamadı.' }, { status: 500 })
 
@@ -141,7 +143,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     ok: true,
     slug: quiz.slug,
-    url: `/test/${quiz.slug}`,
+    url: g.lang === 'en' ? `/en/quiz/${quiz.slug}` : `/test/${quiz.slug}`,
     soru: g.questions.length,
     sonuc: sonuclar.length,
   })
