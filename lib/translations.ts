@@ -112,6 +112,14 @@ const TEKIL_INGILIZCE = new Set([
   'candlelight-painter-petrus-van-schendel',
   'frida-kahlo-frieda-and-diego-rivera',
   'art-and-soul',
+  // Kasım 2026: baştan yazılıp yayına alınan İngilizce rehberler
+  'vanitas-vs-memento-mori',
+  'chiaroscuro-vs-tenebrism',
+  'persephone-in-art-symbolism',
+  'sfumato-vs-chiaroscuro',
+  'mannerism-vs-renaissance',
+  'pomegranate-symbolism-in-art',
+  'the-tortoise-trainer-osman-hamdi-bey',
 ])
 
 // Ters yön: İngilizce slug -> Türkçe slug
