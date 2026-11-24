@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { authorSlug } from '@/lib/authorSlug'
 
@@ -139,6 +140,9 @@ export async function POST(req: NextRequest) {
     )
     if (e4) return geriAl(e4.message)
   }
+
+  // Liste sayfaları yeni testi hemen göstersin.
+  for (const y of ['/testler', '/en', '/en/quizzes', '/sitemap.xml']) revalidatePath(y)
 
   return NextResponse.json({
     ok: true,
